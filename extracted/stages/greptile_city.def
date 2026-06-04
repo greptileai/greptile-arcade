@@ -1,0 +1,85 @@
+; Greptile City — stage built from greptile-game-images/Screen.png
+; Single full-screen 1920x1080 background sprite (group 0, image 0) in greptile_city.sff
+
+;--------------------------------------------------------
+[Info]
+name = "Greptile City"
+displayname = "Greptile City"
+versiondate = 06,04,2026
+mugenversion = 1.0
+author = "Greptile"
+
+;--------------------------------------------------------
+[Camera]
+startx = 0
+starty = 0
+boundleft = -150
+boundright = 150
+boundhigh = -120
+boundlow = 0
+verticalfollow = .2
+floortension = 0
+tension = 250
+overdrawhigh = 0
+overdrawlow = 0
+cuthigh = 0
+cutlow = 0
+
+;--------------------------------------------------------
+[PlayerInfo]
+p1startx = -420
+p1starty = 0
+p1facing = 1
+p2startx = 420
+p2starty = 0
+p2facing = -1
+leftbound  = -1200
+rightbound =  1200
+
+;--------------------------------------------------------
+[Bound]
+screenleft = 90
+screenright = 90
+
+;--------------------------------------------------------
+[StageInfo]
+zoffset = 950
+autoturn = 1
+resetBG = 1
+localcoord = 1920, 1080
+xscale = 1
+yscale = 1
+
+;--------------------------------------------------------
+[Shadow]
+intensity = 96
+color = 0,0,0
+yscale = .3
+fade.range = 0,0
+
+;--------------------------------------------------------
+[Reflection]
+intensity = 0
+
+;--------------------------------------------------------
+[Music]
+bgmusic =
+bgmvolume = 100
+
+;--------------------------------------------------------
+[BGdef]
+spr = greptile_city.sff
+debugbg = 0
+
+; Full-screen city background. Sprite axis is centered, so start places the
+; image center: x=0 (screen center), y=540 (vertical middle of the 1080 space).
+; Image overfills the view (2304x1296) so camera panning never shows black.
+[BG 0]
+type  = normal
+spriteno = 0, 0
+layerno = 0
+start = 0, 540
+delta = 1, 1
+trans = none
+mask  = 0
+tile  = 0, 0

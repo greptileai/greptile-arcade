@@ -1,0 +1,47 @@
+; Definition file for Greptile (mascot skin)
+; Idle + walk are reskinned with the Greptile mascot; every other animation
+; is the original Kung Fu Man, since greptile.sff keeps all of KFM's sprites.
+; Base character: Kung Fu Man by Elecbyte, licensed CC BY-NC (see LICENSES.txt).
+
+; Player information
+[Info]
+name = "Greptile"           ;Name of character
+displayname = "Greptile"    ;Name of character to display
+versiondate = 06,04,2026    ;Version date of character (MM-DD-YYYY or X.XX)
+mugenversion = 1.0          ;Version of M.U.G.E.N character works on (X.XX)
+author = "Greptile (mascot art); base char Kung Fu Man by Elecbyte (CC BY-NC)"
+pal.defaults = 1,2,3,4      ;Default palettes in order of preference (up to 4)
+                            ;Numbering starts from 1
+localcoord = 320,240        ;Local coordinate space width and height
+
+; Files for the player
+[Files]
+cmd     = greptile.cmd      ;Command set
+cns     = greptile.cns      ;Constants
+st      = greptile.cns      ;States
+stcommon = common1.cns      ;Common states (from data/ or motif)
+sprite  = greptile.sff      ;Sprite
+anim    = greptile.air      ;Animation
+sound   = greptile.snd      ;Sound
+ai      = greptile.ai       ;AI hints data (not used)
+movelist = movelist.dat     ;Ikemen feature: Movelist
+
+; Maps character selection buttons to palette numbers.
+[Palette Keymap]
+x = 1 ;Press button X to select palette 1, etc.
+y = 2
+z = 3
+a = 4
+b = 5
+c = 6
+x2 = 7 ;Hold Start and press button X for palette 7, etc.
+y2 = 8
+z2 = 9
+a2 = 10
+b2 = 11
+c2 = 12
+
+; Arcade mode
+[Arcade]
+intro.storyboard = intro.def
+ending.storyboard = ending.def

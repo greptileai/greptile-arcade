@@ -1,0 +1,12 @@
+{
+  "playtime": 223.75,
+  "modes": {
+    "versus": {
+      "playtime": 223.75,
+      "clear": 1,
+      "clearcount": {
+        "kfm_zss": 1
+      }
+    }
+  }
+}
