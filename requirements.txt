@@ -1,0 +1,5 @@
+# Python deps for the asset tooling (build_assets.py) ONLY.
+# NOT needed to launch the game — the engine is a native binary and the
+# greptile SFFs are already committed. Recreate the venv with:
+#   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+Pillow==12.2.0

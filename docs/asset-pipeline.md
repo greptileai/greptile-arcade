@@ -8,10 +8,13 @@ them, and packs them into SFF v2 with each frame embedded as a PNG32 sprite
 
 ## TL;DR
 
+> **You only need this to rebuild assets.** Launching the game needs no Python at
+> all — the engine is a native binary and the SFFs are already committed.
+
 ```bash
 # one-time setup (Homebrew Python blocks global pip, so use a venv)
 python3 -m venv .venv
-.venv/bin/pip install Pillow
+.venv/bin/pip install -r requirements.txt
 
 # build everything (character + stage)
 .venv/bin/python build_assets.py all

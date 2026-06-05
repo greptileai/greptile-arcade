@@ -13,19 +13,27 @@ how-to; this is the orientation.
 - **This is NOT the engine source.** The engine source lives elsewhere
   (`Ikemen-GO`, read-only reference); never edit engine internals here.
 
-## The one thing to know about assets
+## Launching needs no setup
+
+The engine is a native binary and the greptile SFFs are committed, so **playing
+the game requires no Python, no venv, no rebuild** — just clone and run (see
+below). The venv is only for the *asset tooling*.
+
+## Changing assets (only this part needs Python)
 
 Ikemen loads sprites **only from `.sff` files, never loose PNGs**. To change any
 art you edit/add a PNG in `greptile-game-images/`, then run the packer:
 
 ```bash
 # one-time: Homebrew Python blocks global pip, so use a venv
-python3 -m venv .venv && .venv/bin/pip install Pillow
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 .venv/bin/python build_assets.py all     # or: char | stage
 ```
 
-Outputs `extracted/chars/greptile/greptile.sff` and
+The venv itself is git-ignored on purpose (it has platform-specific native
+binaries and hardcoded paths); `requirements.txt` is the tracked, reproducible
+source of truth. Outputs `extracted/chars/greptile/greptile.sff` and
 `extracted/stages/greptile_city.sff`. Full details, including the lifebar art
 spec and how the KFM-repack trick works, are in **`docs/asset-pipeline.md`**.
 
