@@ -31,12 +31,20 @@ spec and how the KFM-repack trick works, are in **`docs/asset-pipeline.md`**.
 
 ## Running the game (macOS ARM)
 
+**Simulated fight (AI vs AI)** — greptile vs Kung Fu Man on the city stage. Both
+`-pN.ai 5` flags are what make it a hands-off simulation; the whole runnable game
+(engine binary + SFFs + defs) is committed, so this works straight from a clone:
+
 ```bash
 cd extracted
 ./I.K.E.M.E.N-Go.app/Contents/MacOS/Ikemen_GO_MacOSARM \
   -p1 greptile -p2 kfm -p1.ai 5 -p2.ai 5 \
   -s stages/greptile_city.def -rounds 99 -time -1 -nomusic
 ```
+
+To play it yourself instead, drop `-p1.ai 5` (P1 becomes keyboard/gamepad). The
+`bundle_run.sh` next to the binary is an alternative launcher that resolves paths
+and falls back to the x64 binary.
 
 Renders at 1280×720. macOS blocks CLI `screencapture` (Screen Recording
 permission) — watch live or use the engine's built-in screenshot.
