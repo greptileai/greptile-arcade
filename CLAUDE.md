@@ -68,6 +68,18 @@ permission) — watch live or use the engine's built-in screenshot.
 | `extracted/data/fight.def` / `fight.sff` | Lifebar / HUD definition + sprites |
 | `docs/asset-pipeline.md` | Full asset pipeline + lifebar art spec |
 
+## Arcade / 6-button controls
+
+The target arcade cabinets have **6 attack buttons per player**. Ikemen-GO
+exposes 8 attack buttons (`a b c x y z d w`); the extra two — `d` and `w` — are
+**not used** and must stay unbound. `extracted/save/config.ini` has `d`/`w` set
+to `Not used` for all players (keyboard + joystick); keep them that way.
+
+The greptile character already uses only `x y z a b c` (light/medium/heavy punch
+and kick) plus `s` (start/taunt), so **no moves depend on `d`/`w`** — dropping
+them costs nothing. If you add moves, assign them to the six standard buttons
+only. The arcade's own `config.ini` lives on the machine; ours is the reference.
+
 ## Conventions & constraints
 
 - Mascot sprites are PNG32/RGBA (SFF format 12) — no palettes needed.
