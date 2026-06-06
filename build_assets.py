@@ -148,10 +148,15 @@ def build_character():
     dst = ROOT / "extracted/chars/greptile/greptile.sff"
     sprites, palettes = read_sff_v2(src)
     n_kfm = len(sprites)
-    used_groups = {s["group"] for s in sprites}
-    idle_grp = max(used_groups) + 100         # safely past any KFM group
-    walk_grp = idle_grp + 1
-    dash_grp = idle_grp + 2
+    # greptile.air references the mascot sprites by fixed group numbers, so pin
+    # them here rather than deriving from the source SFF — a future source SFF
+    # with a higher max group would silently desync the packed groups from the
+    # AIR (and the game would miss the idle/walk/dash sprites).
+    idle_grp, walk_grp, dash_grp = 9100, 9101, 9102
+    max_src_grp = max(s["group"] for s in sprites)
+    if idle_grp <= max_src_grp:               # must sit above KFM's own groups
+        raise ValueError(f"mascot group {idle_grp} collides with source SFF "
+                         f"(max group {max_src_grp})")
 
     # The designer's sheets are high-res (480x480 frames) with the mascot drawn
     # inside transparent padding. Derive ONE scale + ground line from the idle
@@ -172,15 +177,15 @@ def build_character():
     for i, png in enumerate(walk_frames):
         sprites.append(png_sprite(walk_grp, i, png, wout, wout, ax, ay))
 
-    # Dash / forward-run (anim 100). Optional: only packed if the designer has
-    # exported the sheet, so idle/walk still build while the art is in progress.
+    # Dash / forward-run (anim 100). Action 100 always references group 9102,
+    # so fail fast if the required designer sheet is missing or misnamed.
     dash_sheet = ART / "Dashing_spritesheet.png"
-    n_dash = 0
-    if dash_sheet.exists():
-        dash_frames, dout = slice_sheet(dash_sheet, scale)
-        for i, png in enumerate(dash_frames):
-            sprites.append(png_sprite(dash_grp, i, png, dout, dout, ax, ay))
-        n_dash = len(dash_frames)
+    if not dash_sheet.exists():
+        raise FileNotFoundError(f"required dash sheet missing: {dash_sheet}")
+    dash_frames, dout = slice_sheet(dash_sheet, scale)
+    for i, png in enumerate(dash_frames):
+        sprites.append(png_sprite(dash_grp, i, png, dout, dout, ax, ay))
+    n_dash = len(dash_frames)
 
     write_sff_v2(dst, sprites, palettes)
     print(f"[char] {dst.relative_to(ROOT)}: kept {n_kfm} KFM sprites + "
