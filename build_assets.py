@@ -105,20 +105,37 @@ def write_sff_v2(path, sprites, palettes):
     Path(path).write_bytes(bytes(header) + bytes(spr_nodes) + bytes(pal_nodes) + bytes(ldata))
 
 # ---------------------------------------------------------------- sheet slicing
-def slice_sheet(path, frame_w, frame_h, scale):
-    """Return a list of PNG32 byte-blobs, one per frame, upscaled nearest-neighbor."""
+def union_bbox(path):
+    """Union of the non-transparent bounding boxes across all square frames of a
+    sheet (frame size = sheet height), in frame-local coords (l, t, r, b)."""
     sheet = Image.open(path).convert("RGBA")
-    n = sheet.width // frame_w
+    fh = sheet.height
+    ub = None
+    for i in range(sheet.width // fh):
+        bb = sheet.crop((i * fh, 0, (i + 1) * fh, fh)).getbbox()
+        if bb:
+            ub = bb if ub is None else (min(ub[0], bb[0]), min(ub[1], bb[1]),
+                                        max(ub[2], bb[2]), max(ub[3], bb[3]))
+    return ub
+
+def slice_sheet(path, scale):
+    """Slice a horizontal sheet of SQUARE frames (frame size = sheet height) and
+    scale each by `scale`, nearest-neighbor to keep the pixel art crisp. The
+    source frame size is auto-detected, so the high-res sheets (480x480 frames)
+    and the original 24x24 sheets both pack correctly. Returns (frames, out_px)."""
+    sheet = Image.open(path).convert("RGBA")
+    fh = sheet.height
+    n = sheet.width // fh
+    out = round(fh * scale)
     frames = []
     for i in range(n):
-        box = (i * frame_w, 0, (i + 1) * frame_w, frame_h)
-        frame = sheet.crop(box)
-        if scale != 1:
-            frame = frame.resize((frame_w * scale, frame_h * scale), Image.NEAREST)
+        frame = sheet.crop((i * fh, 0, (i + 1) * fh, fh))
+        if out != fh:
+            frame = frame.resize((out, out), Image.NEAREST)
         buf = io.BytesIO()
         frame.save(buf, format="PNG")
         frames.append(buf.getvalue())
-    return frames, frame_w * scale, frame_h * scale
+    return frames, out
 
 def png_sprite(group, number, png_bytes, w, h, ax, ay):
     payload = struct.pack("<I", len(png_bytes)) + png_bytes   # 4-byte len prefix
@@ -126,7 +143,7 @@ def png_sprite(group, number, png_bytes, w, h, ax, ay):
                 link=0, fmt=12, coldepth=32, palidx=0, payload=payload)
 
 # ---------------------------------------------------------------- build steps
-def build_character(scale=4):
+def build_character():
     src = ROOT / "extracted/chars/kfm/kfm.sff"
     dst = ROOT / "extracted/chars/greptile/greptile.sff"
     sprites, palettes = read_sff_v2(src)
@@ -134,23 +151,43 @@ def build_character(scale=4):
     used_groups = {s["group"] for s in sprites}
     idle_grp = max(used_groups) + 100         # safely past any KFM group
     walk_grp = idle_grp + 1
+    dash_grp = idle_grp + 2
 
-    idle_frames, iw, ih = slice_sheet(ART / "Idle_Spritesheet.png", 24, 24, scale)
-    walk_frames, ww, wh = slice_sheet(ART / "Walking_Spritesheet.png", 24, 24, scale)
-    ax, ay = iw // 2, ih                      # axis: bottom-center -> stands on floor
+    # The designer's sheets are high-res (480x480 frames) with the mascot drawn
+    # inside transparent padding. Derive ONE scale + ground line from the idle
+    # pose so the mascot renders at the ORIGINAL mascot's size (the first build
+    # packed it ~56px tall) with its feet on the floor, then apply that same
+    # transform to every sheet -> a constant size + baseline across idle/walk/dash.
+    TARGET_CHAR_H = 56                         # in-game body height, px (matches original)
+    idle_path = ART / "Idle_Spritesheet.png"
+    ifh = Image.open(idle_path).height
+    ul, ut, ur, ub = union_bbox(idle_path)    # idle content box (frame-local)
+    scale = TARGET_CHAR_H / (ub - ut)         # idle content height -> target
+    ax, ay = round(ifh / 2 * scale), round(ub * scale)   # bottom-center on foot line
 
+    idle_frames, iout = slice_sheet(idle_path, scale)
+    walk_frames, wout = slice_sheet(ART / "Walking_Spritesheet.png", scale)
     for i, png in enumerate(idle_frames):
-        sprites.append(png_sprite(idle_grp, i, png, iw, ih, ax, ay))
+        sprites.append(png_sprite(idle_grp, i, png, iout, iout, ax, ay))
     for i, png in enumerate(walk_frames):
-        sprites.append(png_sprite(walk_grp, i, png, ww, wh, ww // 2, wh))
+        sprites.append(png_sprite(walk_grp, i, png, wout, wout, ax, ay))
+
+    # Dash / forward-run (anim 100). Optional: only packed if the designer has
+    # exported the sheet, so idle/walk still build while the art is in progress.
+    dash_sheet = ART / "Dashing_spritesheet.png"
+    n_dash = 0
+    if dash_sheet.exists():
+        dash_frames, dout = slice_sheet(dash_sheet, scale)
+        for i, png in enumerate(dash_frames):
+            sprites.append(png_sprite(dash_grp, i, png, dout, dout, ax, ay))
+        n_dash = len(dash_frames)
 
     write_sff_v2(dst, sprites, palettes)
     print(f"[char] {dst.relative_to(ROOT)}: kept {n_kfm} KFM sprites + "
-          f"{len(idle_frames)} idle + {len(walk_frames)} walk")
-    print(f"[char] idle group={idle_grp} (0..{len(idle_frames)-1}), "
-          f"walk group={walk_grp} (0..{len(walk_frames)-1}), "
-          f"frame={iw}x{ih}, axis=({ax},{ay})")
-    return idle_grp, walk_grp, len(idle_frames), len(walk_frames), iw, ih
+          f"{len(idle_frames)} idle + {len(walk_frames)} walk + {n_dash} dash")
+    print(f"[char] groups idle={idle_grp} walk={walk_grp} dash={dash_grp}; "
+          f"sprite {iout}x{iout} scale={scale:.3f} axis=({ax},{ay})")
+    return idle_grp, walk_grp, len(idle_frames), len(walk_frames), iout, iout
 
 def build_stage(scale=1.2):
     """Overfill the screen so camera panning never exposes an edge, and put the
