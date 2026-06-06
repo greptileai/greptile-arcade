@@ -1,8 +1,8 @@
 # Asset pipeline — turning PNGs into Ikemen `.sff` files
 
 Ikemen-GO loads sprites **only** from `.sff` files, never from loose PNGs. The
-designer hands us RGBA PNG sprite sheets; `build_assets.py` slices them, upscales
-them, and packs them into SFF v2 with each frame embedded as a PNG32 sprite
+designer hands us RGBA PNG sprite sheets; `build_assets.py` slices them, scales
+them to the in-game size, and packs them into SFF v2 with each frame embedded as a PNG32 sprite
 (format 12, RGBA — no palette needed). This doc is the human-readable how-to;
 `build_assets.py`'s docstring documents the binary SFF v2 layout.
 
@@ -46,8 +46,25 @@ Output:
 **every** existing KFM sprite/palette and **appending** the mascot frames as
 PNG32 sprites. Because KFM's own sprites survive untouched, the character still
 fights as Kung Fu Man for every animation we haven't overridden. Currently
-overridden: idle (anim 0) and walk (anim 20/21), at sprite groups 9100/9101.
-Frames are upscaled 4× nearest-neighbor.
+overridden:
+
+| Animation | Anim # | Sprite group | Source sheet |
+|-----------|--------|--------------|--------------|
+| Idle | 0 | `9100` | `Idle_Spritesheet.png` |
+| Walk | 20 / 21 | `9101` | `Walking_Spritesheet.png` |
+| Dash / run forward | 100 | `9102` | `Dashing_spritesheet.png` |
+
+The groups are **pinned** (9100/9101/9102) to match `greptile.air`, and the dash
+sheet is **required** — the build fails fast if it's missing, since Action 100
+always references group 9102.
+
+**Sizing & anchoring:** sheets are square frames in a horizontal strip; the frame
+size is auto-detected (= sheet height), so any resolution works (current art is
+480×480 per frame). Frames are scaled nearest-neighbor to the original on-screen
+mascot height (~56px, derived from the idle pose). The horizontal axis is the
+frame center; the **vertical axis is set per frame to that frame's own foot
+line**, so the mascot stays planted on the floor through the walk/dash bob
+instead of sinking or floating.
 
 ## How the stage build works
 
@@ -68,8 +85,9 @@ permission — watch live or use the engine's built-in screenshot.
 
 ## Adding new sprite sheets
 
-1. Designer exports an RGBA PNG sprite sheet (frames laid out in a grid, e.g.
-   24×24 frames for idle/walk) into `greptile-game-images/`.
+1. Designer exports an RGBA PNG sprite sheet — square frames in a horizontal
+   strip (any resolution; current art is 480×480 per frame) — into
+   `greptile-game-images/`.
 2. Add a slicing + packing block in `build_assets.py` (mirror how idle/walk are
    handled), choosing a free sprite group/number and wiring it into the
    character's `.air` animation.
