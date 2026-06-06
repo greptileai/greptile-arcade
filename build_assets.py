@@ -105,13 +105,24 @@ def write_sff_v2(path, sprites, palettes):
     Path(path).write_bytes(bytes(header) + bytes(spr_nodes) + bytes(pal_nodes) + bytes(ldata))
 
 # ---------------------------------------------------------------- sheet slicing
-def union_bbox(path):
-    """Union of the non-transparent bounding boxes across all square frames of a
-    sheet (frame size = sheet height), in frame-local coords (l, t, r, b)."""
+def _frames(path):
+    """Open a sprite sheet and return (sheet, frame_size, n_frames). Frames are
+    square (size = sheet height); the strip width must be an exact multiple of
+    that, so a partial or stray final frame fails loudly here instead of being
+    silently dropped by floor division."""
     sheet = Image.open(path).convert("RGBA")
     fh = sheet.height
+    if sheet.width % fh:
+        raise ValueError(f"{path}: sheet width {sheet.width} is not a multiple "
+                         f"of frame height {fh}")
+    return sheet, fh, sheet.width // fh
+
+def union_bbox(path):
+    """Union of the non-transparent bounding boxes across all square frames of a
+    sheet, in frame-local coords (l, t, r, b); None if the sheet is fully blank."""
+    sheet, fh, n = _frames(path)
     ub = None
-    for i in range(sheet.width // fh):
+    for i in range(n):
         bb = sheet.crop((i * fh, 0, (i + 1) * fh, fh)).getbbox()
         if bb:
             ub = bb if ub is None else (min(ub[0], bb[0]), min(ub[1], bb[1]),
@@ -126,9 +137,7 @@ def slice_sheet(path, scale):
     (frames, out_px, floors) where floors[i] is frame i's lowest opaque row in
     the scaled output — its ground-contact line — so each frame can be anchored
     to the floor independently (the mascot bobs without sinking or floating)."""
-    sheet = Image.open(path).convert("RGBA")
-    fh = sheet.height
-    n = sheet.width // fh
+    sheet, fh, n = _frames(path)
     out = round(fh * scale)
     frames, floors = [], []
     for i in range(n):
@@ -164,24 +173,25 @@ def build_character():
 
     # The designer's sheets are high-res (480x480 frames) with the mascot drawn
     # inside transparent padding. Size the mascot from the idle pose to the
-    # ORIGINAL on-screen height (the first build packed it ~56px tall). The
-    # horizontal axis is the frame center (shared by every frame, so the body
-    # doesn't wobble); the VERTICAL axis is set per frame to that frame's own
-    # foot line, so every idle/walk/dash frame stands on the floor instead of
-    # sinking or floating when its lowest opaque row differs from the idle pose.
+    # ORIGINAL on-screen height (the first build packed it ~56px tall). Axes are
+    # per sheet/frame so any resolution stays aligned: each frame's horizontal
+    # axis is its own (square) frame center = out//2, and its VERTICAL axis is
+    # that frame's own foot line, so every idle/walk/dash frame stays centered
+    # and stands on the floor instead of sinking or floating.
     TARGET_CHAR_H = 56                         # in-game body height, px (matches original)
     idle_path = ART / "Idle_Spritesheet.png"
-    ifh = Image.open(idle_path).height
-    ul, ut, ur, ub = union_bbox(idle_path)    # idle content box (frame-local)
+    idle_bbox = union_bbox(idle_path)         # idle content box (frame-local)
+    if idle_bbox is None:
+        raise ValueError(f"{idle_path}: idle sheet has no non-transparent pixels")
+    ul, ut, ur, ub = idle_bbox
     scale = TARGET_CHAR_H / (ub - ut)         # idle content height -> target
-    ax = round(ifh / 2 * scale)               # horizontal center, shared by all frames
 
     idle_frames, iout, idle_floor = slice_sheet(idle_path, scale)
     walk_frames, wout, walk_floor = slice_sheet(ART / "Walking_Spritesheet.png", scale)
     for i, png in enumerate(idle_frames):
-        sprites.append(png_sprite(idle_grp, i, png, iout, iout, ax, idle_floor[i]))
+        sprites.append(png_sprite(idle_grp, i, png, iout, iout, iout // 2, idle_floor[i]))
     for i, png in enumerate(walk_frames):
-        sprites.append(png_sprite(walk_grp, i, png, wout, wout, ax, walk_floor[i]))
+        sprites.append(png_sprite(walk_grp, i, png, wout, wout, wout // 2, walk_floor[i]))
 
     # Dash / forward-run (anim 100). Action 100 always references group 9102,
     # so fail fast if the required designer sheet is missing or misnamed.
@@ -190,14 +200,14 @@ def build_character():
         raise FileNotFoundError(f"required dash sheet missing: {dash_sheet}")
     dash_frames, dout, dash_floor = slice_sheet(dash_sheet, scale)
     for i, png in enumerate(dash_frames):
-        sprites.append(png_sprite(dash_grp, i, png, dout, dout, ax, dash_floor[i]))
+        sprites.append(png_sprite(dash_grp, i, png, dout, dout, dout // 2, dash_floor[i]))
     n_dash = len(dash_frames)
 
     write_sff_v2(dst, sprites, palettes)
     print(f"[char] {dst.relative_to(ROOT)}: kept {n_kfm} KFM sprites + "
           f"{len(idle_frames)} idle + {len(walk_frames)} walk + {n_dash} dash")
     print(f"[char] groups idle={idle_grp} walk={walk_grp} dash={dash_grp}; "
-          f"sprite {iout}x{iout} scale={scale:.3f} ax={ax} "
+          f"sprite {iout}x{iout} scale={scale:.3f} ax={iout // 2} "
           f"floors idle={idle_floor} walk={walk_floor} dash={dash_floor}")
     return idle_grp, walk_grp, len(idle_frames), len(walk_frames), iout, iout
 
