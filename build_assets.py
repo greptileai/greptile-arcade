@@ -36,6 +36,7 @@ ART = ROOT / "greptile-game-images"
 CHARACTER_ASSETS = ROOT / "assets/characters"
 DEFAULT_VARIANT = "lizard"
 CHAR_AIR = ROOT / "extracted/chars/greptile/greptile.air"
+CHAR_SFF = ROOT / "extracted/chars/greptile/greptile.sff"
 SIG = b"ElecbyteSpr\x00"
 
 ACTION_RE = re.compile(r"(?m)^\[Begin Action (\d+)\]")
@@ -389,13 +390,32 @@ def validate_air_uses_variant_groups(cfg=None, path=CHAR_AIR):
     )
 
 
+def validate_sff_contains_variant_groups(cfg=None, path=CHAR_SFF):
+    cfg = cfg or load_action_map()
+    variant_groups = {int(spec["group"]) for spec in cfg["sprites"].values()}
+    variant = cfg["_variant"]
+    sprites, _ = read_sff_v2(path)
+    packed_groups = {int(sprite["group"]) for sprite in sprites}
+    missing = sorted(variant_groups - packed_groups)
+    if missing:
+        preview = ", ".join(str(group) for group in missing[:12])
+        raise ValueError(
+            f"{path.relative_to(ROOT)} is missing {variant} sprite group(s): "
+            f"{preview}; run build_assets.py char {variant} first"
+        )
+    print(
+        f"[validate] SFF contains {variant} groups "
+        f"{min(variant_groups)}..{max(variant_groups)}"
+    )
+
+
 # ---------------------------------------------------------------- build steps
 def build_character(variant=DEFAULT_VARIANT):
     """Build greptile.sff using the selected complete sprite set."""
     cfg = load_action_map(variant)
     frame_counts = validate_character_assets(cfg)
     src = ROOT / "extracted/chars/kfm/kfm.sff"
-    dst = ROOT / "extracted/chars/greptile/greptile.sff"
+    dst = CHAR_SFF
     sprites, palettes = read_sff_v2(src)
     n_kfm = len(sprites)
     frame_size = int(cfg["frame_size"])
@@ -452,6 +472,7 @@ def main(argv):
     elif what == "air":
         variant = command_variant(argv)
         cfg = load_action_map(variant)
+        validate_sff_contains_variant_groups(cfg)
         patch_air_for_variant(cfg)
         validate_air_uses_variant_groups(cfg)
     elif what == "stage":
@@ -464,6 +485,7 @@ def main(argv):
         variant = command_variant(argv)
         cfg = load_action_map(variant)
         validate_character_assets(cfg)
+        validate_sff_contains_variant_groups(cfg)
         validate_air_uses_variant_groups(cfg)
     elif what in known_variants:
         variant = what
