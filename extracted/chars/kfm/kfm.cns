@@ -1050,7 +1050,7 @@ physics = N
 velset = 0,0
 
 [State 820, 1]
-type = ChangeAnim
+type = ChangeAnim2
 Trigger1 = Time = 0
 value = 820
 
