@@ -1,7 +1,7 @@
-# greptile-game — project guide for Claude
+# greptile-game — project guide for Codex
 
 This repo reskins the **Ikemen-GO** fighting engine with Greptile mascot art.
-This file is auto-loaded by Claude Code on clone, so any teammate's Claude starts
+This file is auto-loaded by Codex on clone, so any teammate's Codex starts
 with the right context. Read **`docs/asset-pipeline.md`** for the full PNG→SFF
 how-to; this is the orientation.
 

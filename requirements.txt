@@ -1,0 +1,2 @@
+# Python deps for asset tooling only. The game binary does not need Python.
+Pillow==12.2.0
