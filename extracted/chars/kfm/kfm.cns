@@ -1403,7 +1403,7 @@ physics = N
 velset = 0,0
 
 [State 1025, Anim] ;Custom animation
-type = ChangeAnim
+type = ChangeAnim2
 trigger1 = 1
 value = 1025
 
@@ -1489,7 +1489,7 @@ postype = back
 sprpriority = 3
 
 [State 1027, Anim]
-type = ChangeAnim
+type = ChangeAnim2
 trigger1 = Time = 0
 value = 1027
 
