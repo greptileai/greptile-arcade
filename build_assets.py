@@ -177,6 +177,14 @@ def read_air_actions(path=CHAR_AIR):
     return {int(m.group(1)) for m in ACTION_RE.finditer(text)}
 
 
+def all_skin_sprite_groups():
+    groups = set()
+    for path in CHARACTER_ASSETS.glob("*/action-map.json"):
+        cfg = json.loads(path.read_text(encoding="utf-8"))
+        groups.update(int(spec["group"]) for spec in cfg.get("sprites", {}).values())
+    return groups
+
+
 def sprite_line_count_by_action(path=CHAR_AIR):
     raw = Path(path).read_bytes()
     text = raw.decode("utf-8-sig")
@@ -235,13 +243,22 @@ def validate_character_assets(cfg=None, air_path=CHAR_AIR):
         )
 
     actions = cfg["actions"]
+    preserve_actions = {int(a) for a in cfg.get("preserve_actions", [])}
     air_actions = read_air_actions(air_path)
-    missing = sorted(a for a in air_actions if str(a) not in actions)
+    overlap = sorted(a for a in preserve_actions if str(a) in actions)
+    missing = sorted(
+        a for a in air_actions if str(a) not in actions and a not in preserve_actions
+    )
     extra = sorted(int(a) for a in actions if int(a) not in air_actions)
+    extra_preserved = sorted(a for a in preserve_actions if a not in air_actions)
+    if overlap:
+        raise ValueError(f"actions cannot be both mapped and preserved: {overlap}")
     if missing:
         raise ValueError(f"action map missing AIR actions: {missing}")
     if extra:
         raise ValueError(f"action map includes actions not present in AIR: {extra}")
+    if extra_preserved:
+        raise ValueError(f"preserve_actions includes actions not present in AIR: {extra_preserved}")
 
     for action, mapping in actions.items():
         sprite_name = mapping["sprite"]
@@ -342,7 +359,9 @@ def patch_air_for_variant(cfg=None, path=CHAR_AIR):
 
 
 def patch_air_block(block, action, cfg):
-    mapping = cfg["actions"][str(action)]
+    mapping = cfg["actions"].get(str(action))
+    if mapping is None:
+        return block
     sprite_spec = cfg["sprites"][mapping["sprite"]]
     group = int(sprite_spec["group"])
     frames = list(mapping["frames"])
@@ -374,27 +393,38 @@ def patch_air_block(block, action, cfg):
 
 def validate_air_uses_variant_groups(cfg=None, path=CHAR_AIR):
     cfg = cfg or load_action_map()
+    mapped_actions = {int(action) for action in cfg["actions"]}
+    preserve_actions = {int(action) for action in cfg.get("preserve_actions", [])}
     variant_groups = {int(spec["group"]) for spec in cfg["sprites"].values()}
+    skin_groups = all_skin_sprite_groups()
     variant = cfg["_variant"]
     raw = Path(path).read_bytes()
     text = raw.decode("utf-8-sig")
     bad = []
+    preserved_bad = []
     for match in ACTION_RE.finditer(text):
         action = int(match.group(1))
         next_match = ACTION_RE.search(text, match.end())
         body = text[match.end() : next_match.start() if next_match else len(text)]
+        if action not in mapped_actions and action not in preserve_actions:
+            continue
         for line in body.splitlines():
             sprite = SPRITE_LINE_RE.match(line)
             if not sprite:
                 continue
             group = int(sprite.group(2))
-            if group != -1 and group not in variant_groups:
+            if action in mapped_actions and group != -1 and group not in variant_groups:
                 bad.append((action, line.strip()))
+            if action in preserve_actions and group in skin_groups:
+                preserved_bad.append((action, line.strip()))
     if bad:
         preview = ", ".join(f"{a}: {line}" for a, line in bad[:12])
         raise ValueError(f"AIR still references non-{variant} sprites: {preview}")
+    if preserved_bad:
+        preview = ", ".join(f"{a}: {line}" for a, line in preserved_bad[:12])
+        raise ValueError(f"AIR preserved actions still reference skin sprites: {preview}")
     print(
-        f"[validate] AIR sprite refs use {variant} groups "
+        f"[validate] AIR mapped sprite refs use {variant} groups "
         f"{min(variant_groups)}..{max(variant_groups)}"
     )
 

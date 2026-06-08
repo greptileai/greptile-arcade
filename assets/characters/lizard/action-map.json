@@ -64,6 +64,7 @@
       "group": 9113
     }
   },
+  "preserve_actions": [820],
   "actions": {
     "0": {
       "sprite": "idle",
@@ -467,17 +468,6 @@
         3,
         2,
         1
-      ]
-    },
-    "820": {
-      "sprite": "knockdown",
-      "frames": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5
       ]
     },
     "1000": {
