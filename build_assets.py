@@ -354,9 +354,11 @@ def patch_air_block(block, action, cfg):
         frame = frames[replaced % len(frames)]
         replaced += 1
         indent = match.group(1)
+        x_offset = match.group(4)
+        y_offset = match.group(5)
         duration = match.group(6)
         flags = match.group(7)
-        out_lines.append(f"{indent}{group},{frame}, 0,0, {duration}{flags}{newline}")
+        out_lines.append(f"{indent}{group},{frame}, {x_offset},{y_offset}, {duration}{flags}{newline}")
     return "".join(out_lines)
 
 
