@@ -230,6 +230,20 @@ Clsn2Default: 2
 9102,3, 0,0, 5
 9102,4, 0,0, 5
 
+; KFM's original run animation (sprite group 100), preserved so the Super A
+; super-pause in the Triple Kung Fu Palm / Smash Kung Fu Upper states keeps its
+; original look — those SuperPause controllers point at anim 101, not the dash.
+[Begin Action 101]
+Clsn2Default: 2
+ Clsn2[0] =  14,  0,-15,-79
+ Clsn2[1] =  14,-79,  1,-91
+100,0, 0,0, 5
+100,1, 0,0, 5
+100,2, 0,0, 5
+100,3, 0,0, 5
+100,4, 0,0, 5
+100,5, 0,0, 5
+
 ; Hop backwards
 [Begin Action 105]
 Clsn2: 3

@@ -3204,7 +3204,7 @@ value = 15,0
 type = SuperPause
 trigger1 = AnimElem = 2, 1
 pos = 25, -57
-anim = 100
+anim = 101
 sound = 20, 0
 poweradd = -1000
 
@@ -3350,7 +3350,7 @@ value = 5,0
 type = SuperPause
 trigger1 = AnimElem = 2
 pos = -5, -55
-anim = 100
+anim = 101
 sound = 20, 0
 poweradd = -1000
 
