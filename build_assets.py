@@ -27,6 +27,7 @@ import json
 import re
 import struct
 import sys
+import tempfile
 from pathlib import Path
 
 from PIL import Image
@@ -43,6 +44,14 @@ ACTION_RE = re.compile(r"(?m)^\[Begin Action (\d+)\]")
 SPRITE_LINE_RE = re.compile(
     r"^(\s*)(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)(.*)$"
 )
+
+
+def display_path(path):
+    path = Path(path)
+    try:
+        return path.relative_to(ROOT)
+    except ValueError:
+        return path
 
 
 # ---------------------------------------------------------------- SFF reading
@@ -329,7 +338,7 @@ def patch_air_for_variant(cfg=None, path=CHAR_AIR):
     if had_bom:
         out = codecs.BOM_UTF8 + out
     Path(path).write_bytes(out)
-    print(f"[air] patched {path.relative_to(ROOT)} from {cfg['_map_path'].relative_to(ROOT)}")
+    print(f"[air] patched {display_path(path)} from {cfg['_map_path'].relative_to(ROOT)}")
 
 
 def patch_air_block(block, action, cfg):
@@ -400,7 +409,7 @@ def validate_sff_contains_variant_groups(cfg=None, path=CHAR_SFF):
     if missing:
         preview = ", ".join(str(group) for group in missing[:12])
         raise ValueError(
-            f"{path.relative_to(ROOT)} is missing {variant} sprite group(s): "
+            f"{display_path(path)} is missing {variant} sprite group(s): "
             f"{preview}; run build_assets.py char {variant} first"
         )
     print(
@@ -410,12 +419,26 @@ def validate_sff_contains_variant_groups(cfg=None, path=CHAR_SFF):
 
 
 # ---------------------------------------------------------------- build steps
-def build_character(variant=DEFAULT_VARIANT):
+def validate_air_variant_in_temp(cfg=None):
+    cfg = cfg or load_action_map()
+    variant = cfg["_variant"]
+    with tempfile.TemporaryDirectory(prefix=f"greptile-{variant}-") as tmp:
+        tmp = Path(tmp)
+        tmp_sff = tmp / "greptile.sff"
+        tmp_air = tmp / "greptile.air"
+        tmp_air.write_bytes(CHAR_AIR.read_bytes())
+        build_character(variant, dst=tmp_sff)
+        validate_sff_contains_variant_groups(cfg, tmp_sff)
+        patch_air_for_variant(cfg, tmp_air)
+        validate_air_uses_variant_groups(cfg, tmp_air)
+
+
+def build_character(variant=DEFAULT_VARIANT, dst=CHAR_SFF):
     """Build greptile.sff using the selected complete sprite set."""
     cfg = load_action_map(variant)
     frame_counts = validate_character_assets(cfg)
     src = ROOT / "extracted/chars/kfm/kfm.sff"
-    dst = CHAR_SFF
+    dst = Path(dst)
     sprites, palettes = read_sff_v2(src)
     n_kfm = len(sprites)
     frame_size = int(cfg["frame_size"])
@@ -432,7 +455,7 @@ def build_character(variant=DEFAULT_VARIANT):
     write_sff_v2(dst, sprites, palettes)
     added = sum(frame_counts.values())
     print(
-        f"[char] {dst.relative_to(ROOT)}: kept {n_kfm} KFM sprites + "
+        f"[char] {display_path(dst)}: kept {n_kfm} KFM sprites + "
         f"{added} {variant} frames across {len(cfg['sprites'])} groups; "
         f"frame={frame_size * scale}x{frame_size * scale}, axis={axis_mode}"
     )
@@ -484,9 +507,7 @@ def main(argv):
     elif what in ("validate-air", "air-validate"):
         variant = command_variant(argv)
         cfg = load_action_map(variant)
-        validate_character_assets(cfg)
-        validate_sff_contains_variant_groups(cfg)
-        validate_air_uses_variant_groups(cfg)
+        validate_air_variant_in_temp(cfg)
     elif what in known_variants:
         variant = what
         build_character(variant)
