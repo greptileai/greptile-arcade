@@ -160,8 +160,10 @@ Current source filenames:
 | `health-fill-yellow.png` | `13,1` |
 | `health-fill-red.png` | `13,2` |
 | `health-fill-flash.png` | `13,3` |
+| `result-lizard-wins.png` | `530,1` |
+| `result-bug-wins.png` | `530,2` |
 
-Run `.venv/bin/python build_assets.py hud` to pack the health-bar PNGs into
+Run `.venv/bin/python build_assets.py hud` to pack the HUD PNGs into
 `extracted/data/fight.sff`.
 
 ## License constraint

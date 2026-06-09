@@ -796,12 +796,14 @@ def build_hud(dst=FIGHT_SFF):
         (13, 1, "health-fill-yellow.png", (435, 24), 435, 0),
         (13, 2, "health-fill-red.png", (435, 24), 435, 0),
         (13, 3, "health-fill-flash.png", (435, 24), 435, 0),
+        (530, 1, "result-lizard-wins.png", (707, 102), 353, 51),
+        (530, 2, "result-bug-wins.png", (646, 102), 323, 51),
     ]
     for group, number, filename, size, ax, ay in replacements:
         img = load_hud_png(filename, size)
         replace_sprite(sprites, image_sprite(group, number, img, ax, ay))
     write_sff_v2(dst, sprites, palettes)
-    print(f"[hud] {display_path(dst)}: packed {len(replacements)} health bar sprites")
+    print(f"[hud] {display_path(dst)}: packed {len(replacements)} HUD sprites")
 
 
 def build_winner_screen(dst=KOMODO_WINNER_SFF):
