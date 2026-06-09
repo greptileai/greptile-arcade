@@ -191,7 +191,7 @@
  ;Insert your characters below.
 
 greptile, stages/greptile_city.def
-kfm_zss, stages/kfm.def
+bug, stages/greptile_city.def
 kfm720, stages/kfm.def, order=0
 kfm_zaxis, stages/kfm.def, order=0
 randomselect
@@ -339,4 +339,3 @@ survival.maxmatches = -1,0,0,0,0,0,0,0,0,0
  ; unlock = true
  ;
  ;Declare your Story Mode arcs below.
-

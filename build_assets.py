@@ -30,7 +30,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent
 ART = ROOT / "greptile-game-images"
@@ -38,7 +38,34 @@ CHARACTER_ASSETS = ROOT / "assets/characters"
 DEFAULT_VARIANT = "lizard"
 CHAR_AIR = ROOT / "extracted/chars/greptile/greptile.air"
 CHAR_SFF = ROOT / "extracted/chars/greptile/greptile.sff"
+FIGHT_SFF = ROOT / "extracted/data/fight.sff"
 SIG = b"ElecbyteSpr\x00"
+ROUND_HISTORY_GROUP = 9300
+ROUND_HISTORY_ACTIONS = {9300, 9301, 9302}
+ROUND_HISTORY_AIR_BLOCK = f"""
+; BEGIN KOMODO ROUND HISTORY HUD
+[Begin Action 9300]
+{ROUND_HISTORY_GROUP},0, 0,0, -1
+
+[Begin Action 9301]
+{ROUND_HISTORY_GROUP},1, 0,0, -1
+
+[Begin Action 9302]
+{ROUND_HISTORY_GROUP},2, 0,0, -1
+; END KOMODO ROUND HISTORY HUD
+"""
+CHARACTER_TARGETS = {
+    "greptile": {
+        "dir": ROOT / "extracted/chars/greptile",
+        "sff": ROOT / "extracted/chars/greptile/greptile.sff",
+        "air": ROOT / "extracted/chars/greptile/greptile.air",
+    },
+    "bug": {
+        "dir": ROOT / "extracted/chars/bug",
+        "sff": ROOT / "extracted/chars/bug/bug.sff",
+        "air": ROOT / "extracted/chars/bug/bug.air",
+    },
+}
 
 ACTION_RE = re.compile(r"(?m)^\[Begin Action (\d+)\]")
 SPRITE_LINE_RE = re.compile(
@@ -171,6 +198,16 @@ def load_action_map(variant=DEFAULT_VARIANT):
     return cfg
 
 
+def character_target(cfg):
+    character = cfg.get("character", "greptile")
+    if character not in CHARACTER_TARGETS:
+        raise ValueError(f"unknown character target for {cfg['_map_path']}: {character}")
+    target = CHARACTER_TARGETS[character]
+    if not target["dir"].exists():
+        raise FileNotFoundError(f"missing character directory: {display_path(target['dir'])}")
+    return target
+
+
 def read_air_actions(path=CHAR_AIR):
     raw = Path(path).read_bytes()
     text = raw.decode("utf-8-sig")
@@ -211,6 +248,16 @@ def validate_character_assets(cfg=None, air_path=CHAR_AIR):
         raise ValueError("frame_size and scale must be positive")
     if axis_mode not in ("bottom-center", "content-bottom-center"):
         raise ValueError(f"unsupported axis mode: {axis_mode}")
+    portrait_name = cfg.get("portrait")
+    if portrait_name:
+        portrait_path = source_dir / portrait_name
+        if not portrait_path.exists():
+            raise FileNotFoundError(
+                f"{variant}: missing portrait image {display_path(portrait_path)}"
+            )
+        portrait = Image.open(portrait_path).convert("RGBA")
+        if portrait.width <= 0 or portrait.height <= 0:
+            raise ValueError(f"{display_path(portrait_path)}: empty portrait image")
 
     groups = []
     frame_counts = {}
@@ -247,7 +294,11 @@ def validate_character_assets(cfg=None, air_path=CHAR_AIR):
     air_actions = read_air_actions(air_path)
     overlap = sorted(a for a in preserve_actions if str(a) in actions)
     missing = sorted(
-        a for a in air_actions if str(a) not in actions and a not in preserve_actions
+        a
+        for a in air_actions
+        if str(a) not in actions
+        and a not in preserve_actions
+        and a not in ROUND_HISTORY_ACTIONS
     )
     extra = sorted(int(a) for a in actions if int(a) not in air_actions)
     extra_preserved = sorted(a for a in preserve_actions if a not in air_actions)
@@ -330,8 +381,9 @@ def png_sprite(group, number, png_bytes, w, h, ax, ay):
 
 
 # ---------------------------------------------------------------- AIR patching
-def patch_air_for_variant(cfg=None, path=CHAR_AIR):
+def patch_air_for_variant(cfg=None, path=None):
     cfg = cfg or load_action_map()
+    path = Path(path) if path is not None else character_target(cfg)["air"]
     validate_character_assets(cfg, path)
 
     raw = Path(path).read_bytes()
@@ -350,7 +402,7 @@ def patch_air_for_variant(cfg=None, path=CHAR_AIR):
         cursor = end
     chunks.append(text[cursor:])
 
-    patched = "".join(chunks)
+    patched = ensure_round_history_air_actions("".join(chunks))
     out = patched.encode("utf-8")
     if had_bom:
         out = codecs.BOM_UTF8 + out
@@ -391,8 +443,19 @@ def patch_air_block(block, action, cfg):
     return "".join(out_lines)
 
 
-def validate_air_uses_variant_groups(cfg=None, path=CHAR_AIR):
+def ensure_round_history_air_actions(text):
+    text = re.sub(
+        r"\n?; BEGIN KOMODO ROUND HISTORY HUD.*?; END KOMODO ROUND HISTORY HUD\s*",
+        "\n",
+        text,
+        flags=re.S,
+    )
+    return text.rstrip() + "\n" + ROUND_HISTORY_AIR_BLOCK
+
+
+def validate_air_uses_variant_groups(cfg=None, path=None):
     cfg = cfg or load_action_map()
+    path = Path(path) if path is not None else character_target(cfg)["air"]
     mapped_actions = {int(action) for action in cfg["actions"]}
     preserve_actions = {int(action) for action in cfg.get("preserve_actions", [])}
     variant_groups = {int(spec["group"]) for spec in cfg["sprites"].values()}
@@ -429,8 +492,9 @@ def validate_air_uses_variant_groups(cfg=None, path=CHAR_AIR):
     )
 
 
-def validate_sff_contains_variant_groups(cfg=None, path=CHAR_SFF):
+def validate_sff_contains_variant_groups(cfg=None, path=None):
     cfg = cfg or load_action_map()
+    path = Path(path) if path is not None else character_target(cfg)["sff"]
     variant_groups = {int(spec["group"]) for spec in cfg["sprites"].values()}
     variant = cfg["_variant"]
     sprites, _ = read_sff_v2(path)
@@ -454,26 +518,132 @@ def image_sprite(group, number, img, ax=0, ay=0):
     return png_sprite(group, number, buf.getvalue(), img.width, img.height, ax, ay)
 
 # ---------------------------------------------------------------- build steps
+def replace_sprite(sprites, replacement):
+    key = (replacement["group"], replacement["number"])
+    for i, sprite in enumerate(sprites):
+        if (sprite["group"], sprite["number"]) == key:
+            sprites[i] = replacement
+            return
+    sprites.append(replacement)
+
+
+def fit_image_contain(img, size):
+    if hasattr(Image, "Resampling"):
+        downsample = Image.Resampling.LANCZOS
+        upsample = Image.Resampling.NEAREST
+    else:
+        downsample = Image.LANCZOS
+        upsample = Image.NEAREST
+    scale = min(size[0] / img.width, size[1] / img.height)
+    resized_size = (
+        max(1, round(img.width * scale)),
+        max(1, round(img.height * scale)),
+    )
+    resample = downsample if scale < 1 else upsample
+    resized = img.resize(resized_size, resample)
+    canvas = Image.new("RGBA", size, (0, 0, 0, 0))
+    canvas.alpha_composite(
+        resized,
+        ((size[0] - resized_size[0]) // 2, (size[1] - resized_size[1]) // 2),
+    )
+    return canvas
+
+
+def load_character_portrait(cfg):
+    portrait_name = cfg.get("portrait")
+    if portrait_name:
+        path = cfg["_source_dir_abs"] / portrait_name
+        if not path.exists():
+            raise FileNotFoundError(f"missing character portrait: {display_path(path)}")
+        return Image.open(path).convert("RGBA")
+
+    frame_size = int(cfg["frame_size"])
+    idle_spec = cfg["sprites"].get("idle") or next(iter(cfg["sprites"].values()))
+    sheet = Image.open(cfg["_source_dir_abs"] / idle_spec["sheet"]).convert("RGBA")
+    return sheet.crop((0, 0, frame_size, frame_size))
+
+
+def character_portrait_sprites(cfg):
+    img = load_character_portrait(cfg)
+    small = fit_image_contain(img, (25, 25))
+    hud = fit_image_contain(img, (100, 100))
+    large = fit_image_contain(img, (120, 140))
+    return [
+        image_sprite(9000, 0, small, 0, 0),
+        image_sprite(9000, 1, large, 0, 0),
+        image_sprite(9000, 2, hud, 0, 0),
+    ]
+
+
+def round_history_icon_sprites():
+    colors = [
+        (66, 58, 124, 190),   # empty
+        (192, 255, 211, 255), # lizard
+        (255, 253, 83, 255),  # bug
+    ]
+    outline = (126, 91, 225, 255)
+    shadow = (36, 30, 78, 120)
+    out = []
+    for number, fill in enumerate(colors):
+        img = Image.new("RGBA", (25, 8), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        draw.ellipse((2, 2, 22, 7), fill=shadow)
+        draw.ellipse((1, 1, 23, 6), fill=fill, outline=outline)
+        out.append(image_sprite(ROUND_HISTORY_GROUP, number, img, 12, 4))
+    return out
+
+
+def load_hud_png(name, expected_size):
+    path = ART / "ui/hud" / name
+    if not path.exists():
+        raise FileNotFoundError(f"missing HUD source art: {display_path(path)}")
+    img = Image.open(path).convert("RGBA")
+    if img.size != expected_size:
+        raise ValueError(f"{display_path(path)}: expected {expected_size}, got {img.size}")
+    return img
+
+
+def build_hud(dst=FIGHT_SFF):
+    """Pack custom fight HUD art into fight.sff."""
+    sprites, palettes = read_sff_v2(dst)
+    replacements = [
+        (10, 0, "health-empty.png", (435, 24), 435, 0),
+        (11, 0, "health-frame.png", (439, 28), 439, 0),
+        (12, 0, "health-trail.png", (435, 24), 435, 0),
+        (13, 0, "health-fill-green.png", (435, 24), 435, 0),
+        (13, 1, "health-fill-yellow.png", (435, 24), 435, 0),
+        (13, 2, "health-fill-red.png", (435, 24), 435, 0),
+        (13, 3, "health-fill-flash.png", (435, 24), 435, 0),
+    ]
+    for group, number, filename, size, ax, ay in replacements:
+        img = load_hud_png(filename, size)
+        replace_sprite(sprites, image_sprite(group, number, img, ax, ay))
+    write_sff_v2(dst, sprites, palettes)
+    print(f"[hud] {display_path(dst)}: packed {len(replacements)} health bar sprites")
+
+
 def validate_air_variant_in_temp(cfg=None):
     cfg = cfg or load_action_map()
     variant = cfg["_variant"]
+    target = character_target(cfg)
     with tempfile.TemporaryDirectory(prefix=f"greptile-{variant}-") as tmp:
         tmp = Path(tmp)
-        tmp_sff = tmp / "greptile.sff"
-        tmp_air = tmp / "greptile.air"
-        tmp_air.write_bytes(CHAR_AIR.read_bytes())
+        tmp_sff = tmp / target["sff"].name
+        tmp_air = tmp / target["air"].name
+        tmp_air.write_bytes(target["air"].read_bytes())
         build_character(variant, dst=tmp_sff)
         validate_sff_contains_variant_groups(cfg, tmp_sff)
         patch_air_for_variant(cfg, tmp_air)
         validate_air_uses_variant_groups(cfg, tmp_air)
 
 
-def build_character(variant=DEFAULT_VARIANT, dst=CHAR_SFF):
-    """Build greptile.sff using the selected complete sprite set."""
+def build_character(variant=DEFAULT_VARIANT, dst=None):
+    """Build a character SFF using the selected complete sprite set."""
     cfg = load_action_map(variant)
-    frame_counts = validate_character_assets(cfg)
+    target = character_target(cfg)
+    dst = Path(dst) if dst is not None else target["sff"]
+    frame_counts = validate_character_assets(cfg, target["air"])
     src = ROOT / "extracted/chars/kfm/kfm.sff"
-    dst = Path(dst)
     sprites, palettes = read_sff_v2(src)
     n_kfm = len(sprites)
     frame_size = int(cfg["frame_size"])
@@ -486,6 +656,10 @@ def build_character(variant=DEFAULT_VARIANT, dst=CHAR_SFF):
         frames, w, h = slice_fixed_sheet(path, frame_size, scale, axis_mode)
         for i, (png, ax, ay) in enumerate(frames):
             sprites.append(png_sprite(group, i, png, w, h, ax, ay))
+    for portrait in character_portrait_sprites(cfg):
+        replace_sprite(sprites, portrait)
+    for icon in round_history_icon_sprites():
+        replace_sprite(sprites, icon)
 
     write_sff_v2(dst, sprites, palettes)
     added = sum(frame_counts.values())
@@ -521,7 +695,15 @@ def main(argv):
     what = argv[1] if len(argv) > 1 else "all"
     known_variants = {p.parent.name for p in CHARACTER_ASSETS.glob("*/action-map.json")}
 
-    if what in ("all", "char"):
+    if what == "all":
+        for variant in sorted(known_variants):
+            build_character(variant)
+            cfg = load_action_map(variant)
+            patch_air_for_variant(cfg)
+            validate_air_uses_variant_groups(cfg)
+        build_stage()
+        build_hud()
+    elif what == "char":
         variant = command_variant(argv)
         build_character(variant)
         cfg = load_action_map(variant)
@@ -535,6 +717,8 @@ def main(argv):
         validate_air_uses_variant_groups(cfg)
     elif what == "stage":
         build_stage()
+    elif what in ("hud", "fight"):
+        build_hud()
     elif what == "validate":
         variant = command_variant(argv)
         cfg = load_action_map(variant)
@@ -552,12 +736,9 @@ def main(argv):
     else:
         variants = "|".join(sorted(known_variants))
         raise SystemExit(
-            "usage: build_assets.py [all|char|air|stage|validate|validate-air] "
+            "usage: build_assets.py [all|char|air|stage|hud|fight|validate|validate-air] "
             f"[variant]  # variants: {variants}"
         )
-
-    if what == "all":
-        build_stage()
 
 
 if __name__ == "__main__":

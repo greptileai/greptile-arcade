@@ -4,7 +4,7 @@ Ikemen-GO loads sprites **only** from `.sff` files, never from loose PNGs. The
 designer hands us RGBA PNG sprite sheets; `build_assets.py` slices them, packs
 them into SFF v2 as PNG32 sprites (format 12, RGBA -- no palette needed), and
 patches the character `.air` animation file from a variant action map. The
-default active variant is `lizard`; `bug` is available as an alternate.
+default matchup is `greptile` (lizard art) vs `bug` (bug art).
 
 ## TL;DR
 
@@ -16,10 +16,10 @@ default active variant is `lizard`; `bug` is available as an alternate.
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
-# build everything (default: lizard character + stage)
+# build everything (lizard + bug characters, stage, HUD)
 .venv/bin/python build_assets.py all
 
-# choose a specific character skin
+# build one character
 .venv/bin/python build_assets.py char lizard
 .venv/bin/python build_assets.py char bug
 
@@ -27,6 +27,7 @@ python3 -m venv .venv
 .venv/bin/python build_assets.py char
 .venv/bin/python build_assets.py air
 .venv/bin/python build_assets.py stage
+.venv/bin/python build_assets.py hud
 .venv/bin/python build_assets.py validate lizard
 .venv/bin/python build_assets.py validate-air lizard
 ```
@@ -34,7 +35,10 @@ python3 -m venv .venv
 Output:
 - `extracted/chars/greptile/greptile.sff` — KFM fallback sprites plus active skin sprites
 - `extracted/chars/greptile/greptile.air` — sprite refs patched to active skin groups
+- `extracted/chars/bug/bug.sff` — KFM fallback sprites plus bug skin sprites
+- `extracted/chars/bug/bug.air` — sprite refs patched to bug groups
 - `extracted/stages/greptile_city.sff` — city stage
+- `extracted/data/fight.sff` — fight HUD sprites, including custom health bars
 
 ## Where things live
 
@@ -45,9 +49,10 @@ Output:
 | `assets/characters/lizard/action-map.json` | Lizard sheet → Ikemen action map (default) |
 | `assets/characters/bug/action-map.json` | Bug sheet → Ikemen action map |
 | `greptile-game-images/Screen.png` | Stage background |
+| `greptile-game-images/ui/hud/` | Fight HUD source art |
 | `build_assets.py` | Converter and AIR patcher |
 | `extracted/` | The runnable game + packed assets |
-| `extracted/data/select.def` | Registers the `greptile` char and `greptile_city` stage |
+| `extracted/data/select.def` | Registers the `greptile` and `bug` chars plus `greptile_city` stage |
 
 > Note: `~/dev/Ikemen-GO` (engine **source code**) is read-only reference only —
 > we work in `~/dev/ikemen-release`. The SFF v2 format was learned from that
@@ -55,11 +60,11 @@ Output:
 
 ## How the character build works
 
-`build_character()` repacks KFM's `kfm.sff` into `greptile.sff`, byte-copying
+`build_character()` repacks KFM's `kfm.sff` into the target character SFF, byte-copying
 **every** existing KFM sprite/palette and **appending** the selected complete
 skin frame set as PNG32 sprites. Keeping KFM data in the SFF preserves fallback
-data, but `greptile.air` is patched so all 117 current action blocks reference
-the selected skin groups or explicit blank `-1` frames.
+data, but the target AIR file is patched so all 117 current action blocks
+reference the selected skin groups or explicit blank `-1` frames.
 
 The lizard and bug sheets are fixed 24x24 RGBA horizontal strips. The packer
 preserves each full cell, including internal transparent offsets, and upscales
@@ -73,6 +78,7 @@ which frames a game action uses, edit the variant map and rerun:
 
 ```bash
 .venv/bin/python build_assets.py char lizard
+.venv/bin/python build_assets.py char bug
 ```
 
 ## How the stage build works
@@ -85,8 +91,8 @@ background sprite axis centered (so the camera can pan without black edges).
 ```bash
 cd extracted
 ./I.K.E.M.E.N-Go.app/Contents/MacOS/Ikemen_GO_MacOSARM \
-  -p1 greptile -p2 kfm -p1.ai 5 -p2.ai 5 \
-  -s stages/greptile_city.def -rounds 99 -time -1 -nomusic
+  -p1 greptile -p2 bug -p1.ai 5 -p2.ai 5 \
+  -s stages/greptile_city.def -rounds 2 -time -1 -nomusic
 ```
 
 Renders at 1280×720. On macOS, CLI `screencapture` is blocked by Screen Recording
@@ -132,8 +138,20 @@ Rules for the artist:
    automatically; don't bake the slant in. P1 bar axis is at the right edge; P2
    mirrors automatically.
 
-Deliverables: `bar_empty`, `bar_fill_green/yellow/red`, `bar_trail` (435×24),
-`bar_frame` (439×28). Pack into `fight.sff` at groups 10–13 via the same pipeline.
+Current source filenames:
+
+| Source PNG | Packed sprite |
+|------------|---------------|
+| `health-empty.png` | `10,0` |
+| `health-frame.png` | `11,0` |
+| `health-trail.png` | `12,0` |
+| `health-fill-green.png` | `13,0` |
+| `health-fill-yellow.png` | `13,1` |
+| `health-fill-red.png` | `13,2` |
+| `health-fill-flash.png` | `13,3` |
+
+Run `.venv/bin/python build_assets.py hud` to pack the health-bar PNGs into
+`extracted/data/fight.sff`.
 
 ## License constraint
 

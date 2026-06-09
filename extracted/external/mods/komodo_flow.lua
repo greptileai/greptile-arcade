@@ -1,7 +1,7 @@
 local komodo = {}
 
 komodo.p1 = 'greptile'
-komodo.p2 = 'kfm_zss'
+komodo.p2 = 'bug'
 komodo.stage = 'stages/greptile_city.def'
 
 local originalGetSingleMenuAction = main.f_getSingleMenuAction
@@ -52,8 +52,10 @@ function komodo.launch()
 		p2teammode = 'single',
 		p1numchars = 1,
 		p2numchars = 1,
+		p1rounds = 2,
+		p2rounds = 2,
 		stage = komodo.stage,
-		time = gameOption('Options.Time'),
+		time = -1,
 		vsscreen = true,
 		victoryscreen = true,
 		continue = false,

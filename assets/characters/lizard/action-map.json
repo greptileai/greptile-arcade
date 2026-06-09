@@ -2,6 +2,7 @@
   "character": "greptile",
   "variant": "lizard",
   "source_dir": "greptile-game-images/lizard",
+  "portrait": "lizzy-character.png",
   "frame_size": 24,
   "scale": 4,
   "axis": "content-bottom-center",

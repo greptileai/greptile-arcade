@@ -1618,54 +1618,54 @@ p1.frontMax.palfx.sinmul = 30, 30, 30, 10
 ; Multiple Counter elements can be added depending on the level of the bar, including maximum power
 
 p1.counterMax.text = M
-p1.counterMax.offset = -241,31
+p1.counterMax.offset = -241,27
 p1.counterMax.font = 4, 0, 0
 p1.counterMax.palfx.mul = 226, 226, 226
 p1.counterMax.palfx.sinmul = 30, 30, 30, 10
 
-p1.counter10000.offset = -241,31
+p1.counter10000.offset = -241,27
 p1.counter10000.font = 4, 0, 0
 p1.counter10000.palfx.mul = 226, 226, 226
 p1.counter10000.palfx.sinmul = 30, 30, 30, 10
 
-p1.counter9000.offset = -241,31
+p1.counter9000.offset = -241,27
 p1.counter9000.font = 4, 0, 0
 p1.counter9000.palfx.mul = 255, 32, 135
 
-p1.counter8000.offset = -241,31
+p1.counter8000.offset = -241,27
 p1.counter8000.font = 4, 0, 0
 p1.counter8000.palfx.mul = 200, 78, 240
 
-p1.counter7000.offset = -241,31
+p1.counter7000.offset = -241,27
 p1.counter7000.font = 4, 0, 0
 p1.counter7000.palfx.mul = 102, 250, 250
 
-p1.counter6000.offset = -241,31
+p1.counter6000.offset = -241,27
 p1.counter6000.font = 4, 0, 0
 p1.counter6000.palfx.mul = 0, 204, 153
 
-p1.counter5000.offset = -241,31
+p1.counter5000.offset = -241,27
 p1.counter5000.font = 4, 0, 0
 p1.counter5000.palfx.mul = 255, 153, 0
 
-p1.counter4000.offset = -241,31
+p1.counter4000.offset = -241,27
 p1.counter4000.font = 4, 0, 0
 p1.counter4000.palfx.mul = 102, 255, 51
 
-p1.counter3000.offset = -241,31
+p1.counter3000.offset = -241,27
 p1.counter3000.font = 4, 0, 0
 p1.counter3000.palfx.mul = 255, 70, 70
 
-p1.counter2000.offset = -241,31
+p1.counter2000.offset = -241,27
 p1.counter2000.font = 4, 0, 0
 p1.counter2000.palfx.mul = 255, 255, 51
 
-p1.counter1000.offset = -241,31
+p1.counter1000.offset = -241,27
 p1.counter1000.font = 4, 0, 0
 p1.counter1000.palfx.mul = 0, 153, 255
 
 p1.counter.palfx.mul = 125, 125, 125
-p1.counter.offset = -241,31
+p1.counter.offset = -241,27
 p1.counter.font = 4, 0, 0
 p1.levelbars = 1             
 
@@ -1760,53 +1760,53 @@ p2.frontMax.facing = 1
 ; Multiple Counter elements can be added depending on the level of the bar, including maximum power
 
 p2.counterMax.text = M
-p2.counterMax.offset = 241,31
+p2.counterMax.offset = 241,27
 p2.counterMax.font = 4, 0, 0
 p2.counterMax.palfx.mul = 226, 226, 226
 p2.counterMax.palfx.sinmul = 30, 30, 30, 10
 
-p2.counter10000.offset = 243,31
+p2.counter10000.offset = 243,27
 p2.counter10000.font = 4, 0, 0
 p2.counter10000.palfx.mul = 226, 226, 226
 p2.counter10000.palfx.sinmul = 30, 30, 30, 10
 
-p2.counter9000.offset = 243,31
+p2.counter9000.offset = 243,27
 p2.counter9000.font = 4, 0, 0
 p2.counter9000.palfx.mul = 255, 32, 135
 
-p2.counter8000.offset = 243,31
+p2.counter8000.offset = 243,27
 p2.counter8000.font = 4, 0, 0
 p2.counter8000.palfx.mul = 200, 78, 240
 
-p2.counter7000.offset = 243,31
+p2.counter7000.offset = 243,27
 p2.counter7000.font = 4, 0, 0
 p2.counter7000.palfx.mul = 102, 250, 250
 
-p2.counter6000.offset = 243,31
+p2.counter6000.offset = 243,27
 p2.counter6000.font = 4, 0, 0
 p2.counter6000.palfx.mul = 0, 204, 153
 
-p2.counter5000.offset = 243,31
+p2.counter5000.offset = 243,27
 p2.counter5000.font = 4, 0, 0
 p2.counter5000.palfx.mul = 255, 153, 0
 
-p2.counter4000.offset = 243,31
+p2.counter4000.offset = 243,27
 p2.counter4000.font = 4, 0, 0
 p2.counter4000.palfx.mul = 102, 255, 51
 
-p2.counter3000.offset = 243,31
+p2.counter3000.offset = 243,27
 p2.counter3000.font = 4, 0, 0
 p2.counter3000.palfx.mul = 255, 70, 70
 
-p2.counter2000.offset = 243,31
+p2.counter2000.offset = 243,27
 p2.counter2000.font = 4, 0, 0
 p2.counter2000.palfx.mul = 255, 255, 51
 
-p2.counter1000.offset = 243,31
+p2.counter1000.offset = 243,27
 p2.counter1000.font = 4, 0, 0
 p2.counter1000.palfx.mul = 0, 153, 255
 
-p2.counter.offset = 243,31
+p2.counter.offset = 243,27
 p2.counter.font = 4, 0, 0
 p2.counter.palfx.mul = 125, 125, 125
 p2.levelbars = 1             
@@ -2193,36 +2193,40 @@ p2.range.x = 106, 0
 [Face]
 ;Player 1
 p1.pos    = 20,20
-p1.bg0.spr = 50,0
-p1.bg1.spr = 51,0
-p1.face.spr = 9000,0
+p1.bg0.spr = -1,0
+p1.bg1.spr = -1,0
+p1.face.spr = 9000,2
+p1.face.scale = 0.25,0.25
 p1.face.facing = 1
 p1.face.offset = 0,0
 ;Player 2
 p2.pos    = 1260,20
-p2.bg0.spr = 50,0
+p2.bg0.spr = -1,0
 p2.bg0.facing = -1
-p2.bg1.spr = 51,0
+p2.bg1.spr = -1,0
 p2.bg1.facing = -1
-p2.face.spr = 9000,0
+p2.face.spr = 9000,2
+p2.face.scale = 0.25,0.25
 p2.face.facing = -1
 p2.face.offset = 0,0
 
 [Simul Face]
 ;Player 1
 p1.pos    = 20,20
-p1.bg0.spr = 50,0
-p1.bg1.spr = 51,0
-p1.face.spr = 9000,0
+p1.bg0.spr = -1,0
+p1.bg1.spr = -1,0
+p1.face.spr = 9000,2
+p1.face.scale = 0.25,0.25
 p1.face.facing = 1
 p1.face.offset = 0,0
 ;Player 2
 p2.pos    = 1260,20
-p2.bg0.spr = 50,0
+p2.bg0.spr = -1,0
 p2.bg0.facing = -1
-p2.bg1.spr = 51,0
+p2.bg1.spr = -1,0
 p2.bg1.facing = -1
-p2.face.spr = 9000,0
+p2.face.spr = 9000,2
+p2.face.scale = 0.25,0.25
 p2.face.facing = -1
 p2.face.offset = 0,0
 ;Player 3
@@ -2277,17 +2281,19 @@ p8.face.facing = -1
 [Tag Face]
 ;Player 1
 p1.pos    = 20,20
-p1.bg0.spr = 50,0
-p1.bg1.spr = 51,0
-p1.face.spr = 9000,0
+p1.bg0.spr = -1,0
+p1.bg1.spr = -1,0
+p1.face.spr = 9000,2
+p1.face.scale = 0.25,0.25
 p1.face.facing = 1
 ;Player 2
 p2.pos    = 1260,20
-p2.bg0.spr = 50,0
+p2.bg0.spr = -1,0
 p2.bg0.facing = -1
-p2.bg1.spr = 51,0
+p2.bg1.spr = -1,0
 p2.bg1.facing = -1
-p2.face.spr = 9000,0
+p2.face.spr = 9000,2
+p2.face.scale = 0.25,0.25
 p2.face.facing = -1
 ;Player 3
 p3.pos    = 144,84
@@ -2350,9 +2356,10 @@ p8.face.facing = -1
 [Turns Face]
 ;Player 1
 p1.pos    = 20,20
-p1.bg0.spr = 50,0
-p1.bg1.spr = 51,0
-p1.face.spr = 9000,0
+p1.bg0.spr = -1,0
+p1.bg1.spr = -1,0
+p1.face.spr = 9000,2
+p1.face.scale = 0.25,0.25
 p1.face.facing = 1
 ;Player 1's teammates
 p1.teammate.pos = 144,84
@@ -2365,11 +2372,12 @@ p1.teammate.face.scale = 0.35,0.35
 p1.teammate.face.facing = 1
 ;Player 2
 p2.pos    = 1260,20
-p2.bg0.spr = 50,0
+p2.bg0.spr = -1,0
 p2.bg0.facing = -1
-p2.bg1.spr = 51,0
+p2.bg1.spr = -1,0
 p2.bg1.facing = -1
-p2.face.spr = 9000,0
+p2.face.spr = 9000,2
+p2.face.scale = 0.25,0.25
 p2.face.facing = -1
 ;Player 2's teammates
 p2.teammate.pos = 1136,84
@@ -2387,15 +2395,15 @@ p2.teammate.face.facing = -1
 ;-----------------------------------------------------------
 [Name]
 ;Player 1
-p1.pos = 13,145
+p1.pos = 70,145
 p1.name.scale = 1,1
 ;p1.bg. =
-p1.name.font = 3,0, 1
+p1.name.font = 3,0, 0
 ;Player 2
 p2.name.scale = 1,1
-p2.pos = 1267,145
+p2.pos = 1210,145
 ;p2.bg. =
-p2.name.font = 3,0, -1
+p2.name.font = 3,0, 0
 
 [Simul Name]
 ;Player 1
@@ -3625,8 +3633,8 @@ Interpolate Blend
 p1.pos = 544,120
 p2.pos = 736,120
 ; Background icon
-p1.bg0.spr = 120,0
-p2.bg0.spr = 120,0
+p1.bg0.spr = -1,0
+p2.bg0.spr = -1,0
 ; Offset for next icon (x,y)
 p1.iconoffset = -32,0  
 p2.iconoffset = 32,0
@@ -3636,35 +3644,35 @@ p1.counter.font = 4,0,0, 230,255,242
 p2.counter.offset = 0,5
 p2.counter.font = 4,0,0, 255,242,242
 ; Win by normal
-p1.n.spr = 100,0
-p2.n.spr = 100,0
+p1.n.spr = -1,0
+p2.n.spr = -1,0
 ; Win by special
-p1.s.spr = 101,0
-p2.s.spr = 101,0
+p1.s.spr = -1,0
+p2.s.spr = -1,0
 ; Win by hyper (super)
-p1.h.spr = 102,0
-p2.h.spr = 102,0
+p1.h.spr = -1,0
+p2.h.spr = -1,0
 ; Win by normal throw
-p1.throw.spr = 103,0
-p2.throw.spr = 103,0
+p1.throw.spr = -1,0
+p2.throw.spr = -1,0
 ; Win by cheese
-p1.c.spr = 104,0
-p2.c.spr = 104,0
+p1.c.spr = -1,0
+p2.c.spr = -1,0
 ; Win by time over
-p1.t.spr = 105,0
-p2.t.spr = 105,0
+p1.t.spr = -1,0
+p2.t.spr = -1,0
 ; Win by suicide
-p1.suicide.spr = 106,0
-p2.suicide.spr = 106,0
+p1.suicide.spr = -1,0
+p2.suicide.spr = -1,0
 ; Opponent beaten by his own teammate
-p1.teammate.spr = 107,0
-p2.teammate.spr = 107,0
+p1.teammate.spr = -1,0
+p2.teammate.spr = -1,0
 ; Win by perfect (overlay icon)
-p1.perfect.spr = 110,0
-p2.perfect.spr = 110,0
+p1.perfect.spr = -1,0
+p2.perfect.spr = -1,0
 ; Win by clutch (overlay icon)
-p1.clutch.spr = 111,0
-p2.clutch.spr = 111,0
+p1.clutch.spr = -1,0
+p2.clutch.spr = -1,0
 ; Use icons up until this number of wins
 useiconupto = 4
 

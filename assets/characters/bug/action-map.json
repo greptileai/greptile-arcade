@@ -1,7 +1,8 @@
 {
-  "character": "greptile",
+  "character": "bug",
   "variant": "bug",
   "source_dir": "greptile-game-images/bug",
+  "portrait": "bug-character.png",
   "frame_size": 24,
   "scale": 4,
   "axis": "bottom-center",
