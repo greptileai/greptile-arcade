@@ -3596,7 +3596,7 @@ value = 1
 [State -2, Round History Count Draw]
 type = VarAdd
 triggerall = TeamSide = 1
-triggerall = RoundState = 4 && RoundNo != var(59) && var(55) < 3
+triggerall = RoundState >= 4 && RoundNo != var(59) && var(55) < 3
 trigger1 = !Win && !Lose
 v = 55
 value = 1
@@ -3607,7 +3607,7 @@ triggerall = TeamSide = 1
 triggerall = RoundState >= 3 && RoundNo != var(59)
 trigger1 = Win && !Lose
 trigger2 = Lose && !Win
-trigger3 = RoundState = 4 && !Win && !Lose
+trigger3 = RoundState >= 4 && !Win && !Lose
 v = 59
 value = RoundNo
 
