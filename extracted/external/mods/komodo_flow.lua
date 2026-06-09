@@ -6,6 +6,9 @@ komodo.stage = 'stages/greptile_city.def'
 
 local originalGetSingleMenuAction = main.f_getSingleMenuAction
 
+motif.title_info.menu.itemname_order = {'play'}
+motif.title_info.menu.itemname.play = 'Play'
+
 function main.f_getSingleMenuAction(tbl)
 	if tbl ~= nil and tbl.items ~= nil then
 		for _, item in ipairs(tbl.items) do
@@ -19,7 +22,7 @@ end
 
 local function prepareMatch()
 	main.f_clearShuffleTables()
-	main.cpuSide = {false, true}
+	main.cpuSide = {false, false}
 	main.motif.vsscreen = true
 	main.motif.vsmatchno = false
 	main.motif.victoryscreen = true
@@ -32,11 +35,11 @@ local function prepareMatch()
 		{single = true, simul = false, turns = false, tag = false},
 		{single = true, simul = false, turns = false, tag = false},
 	}
-	setGameMode('komodo')
+	setGameMode('versus')
 	setHomeTeam(1)
 	main.f_saveBaseRemapInput()
-	remapInput(1, getLastInputController())
-	remapInput(getLastInputController(), 1)
+	remapInput(1, 1)
+	remapInput(2, 2)
 	setMotifElements(main.motif)
 	start.f_selectReset(true)
 	main.t_availableChars = main.f_tableCopy(main.t_orderChars)

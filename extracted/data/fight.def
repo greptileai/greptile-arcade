@@ -3688,13 +3688,13 @@ p2.pos = 696,24
 p2.text.font = 8,0, 1
 p2.text.text = WINS %s
 
-p1.enabled.netplayversus = 1
-p1.enabled.versus = 1
-p1.enabled.versuscoop = 1
+p1.enabled.netplayversus = 0
+p1.enabled.versus = 0
+p1.enabled.versuscoop = 0
 
-p2.enabled.netplayversus = 1
-p2.enabled.versus = 1
-p2.enabled.versuscoop = 1
+p2.enabled.netplayversus = 0
+p2.enabled.versus = 0
+p2.enabled.versuscoop = 0
 
 ;-----------------------------------------------------------
 [Timer]
