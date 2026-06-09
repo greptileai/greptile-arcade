@@ -3016,85 +3016,85 @@ over.time = 300            ;Time to wait before round ends
 ; Win text
 win.time = 60              ;Time to wait before showing win/draw message
 p1.win.offset = 80, 705 
-p1.win.bg1.anim = 580
+p1.win.bg1.anim = 582
 p1.win.bg1.offset = 540, 610
 p1.win.bg0.anim = 586
 p1.win.bg0.offset = 640, 690
-p1.win.font = 1,0,1
-p1.win.text = "%s wins"
+p1.win.font = -1,0,1
+p1.win.text =
 p1.win.displaytime = 180
 p1.win.snd     = 2,3
 
 p2.win.offset = 1200, 705 
-p2.win.bg1.anim = 581
+p2.win.bg1.anim = 583
 p2.win.bg1.offset = 740, 610
 p2.win.bg0.anim = 586
 p2.win.bg0.offset = 640, 690
-p2.win.font = 1,0,-1
-p2.win.text = "%s wins"
+p2.win.font = -1,0,-1
+p2.win.text =
 p2.win.displaytime = 180
 p2.win.snd     = 2,3
 
 ; 2-player win text
 p1.win2.offset = 80, 705 
-p1.win2.bg1.anim = 580
+p1.win2.bg1.anim = 582
 p1.win2.bg1.offset = 540, 610
 p1.win2.bg0.anim = 586
 p1.win2.bg0.offset = 640, 690
-p1.win2.font = 1,0,1
-p1.win2.text = "%s wins"
+p1.win2.font = -1,0,1
+p1.win2.text =
 p1.win2.displaytime = 180
 p1.win2.snd     = 2,3
 
 p2.win2.offset = 1200, 705 
-p2.win2.bg1.anim = 581
+p2.win2.bg1.anim = 583
 p2.win2.bg1.offset = 740, 610
 p2.win2.bg0.anim = 586
 p2.win2.bg0.offset = 640, 690
-p2.win2.font = 1,0,-1
-p2.win2.text = "%s wins"
+p2.win2.font = -1,0,-1
+p2.win2.text =
 p2.win2.displaytime = 180
 p2.win2.snd     = 2,3
 
 ; 3-player win text
 p1.win3.offset = 80, 705 
-p1.win3.bg1.anim = 580
+p1.win3.bg1.anim = 582
 p1.win3.bg1.offset = 540, 610
 p1.win3.bg0.anim = 586
 p1.win3.bg0.offset = 640, 690
-p1.win3.font = 1,0,1
-p1.win3.text = "%s wins"
+p1.win3.font = -1,0,1
+p1.win3.text =
 p1.win3.displaytime = 180
 p1.win3.snd     = 2,3
 
 p2.win3.offset = 1200, 705 
-p2.win3.bg1.anim = 581
+p2.win3.bg1.anim = 583
 p2.win3.bg1.offset = 740, 610
 p2.win3.bg0.anim = 586
 p2.win3.bg0.offset = 640, 690
-p2.win3.font = 1,0,-1
-p2.win3.text = "%s wins"
+p2.win3.font = -1,0,-1
+p2.win3.text =
 p2.win3.displaytime = 180
 p2.win3.snd     = 2,3
 
 ; 4-player win text
 p1.win4.offset = 80, 705 
-p1.win4.bg1.anim = 580
+p1.win4.bg1.anim = 582
 p1.win4.bg1.offset = 540, 610
 p1.win4.bg0.anim = 586
 p1.win4.bg0.offset = 640, 690
-p1.win4.font = 1,0,1
-p1.win4.text = "%s wins"
+p1.win4.font = -1,0,1
+p1.win4.text =
 p1.win4.displaytime = 180
 p1.win4.snd     = 2,3
 
 p2.win4.offset = 1200, 705 
-p2.win4.bg1.anim = 581
+p2.win4.bg1.anim = 583
 p2.win4.bg1.offset = 740, 610
 p2.win4.bg0.anim = 586
 p2.win4.bg0.offset = 640, 690
-p2.win4.font = 1,0,-1
-p2.win4.text = "%s wins"
+p2.win4.font = -1,0,-1
+p2.win4.text =
 p2.win4.displaytime = 180
 p2.win4.snd     = 2,3
 

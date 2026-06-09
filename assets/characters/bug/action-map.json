@@ -20,8 +20,8 @@
     "attacking": { "sheet": "Bug-Attacking_spritesheet.png", "group": 9206 },
     "guarding": { "sheet": "Bug-Guarding_spritesheet.png", "group": 9207 },
     "light_hit": { "sheet": "Bug-Lighthit_spritesheet.png", "group": 9208 },
-    "hard_hit": { "sheet": "Bug-Hardhit_spritesheet.png", "group": 9209 },
-    "knockdown": { "sheet": "Bug-Knockdown_spritesheet.png", "group": 9210 },
+    "hard_hit": { "sheet": "Bug-Hardhit_spritesheet.png", "group": 9109 },
+    "knockdown": { "sheet": "Bug-Knockdown_spritesheet.png", "group": 9110 },
     "airfall": { "sheet": "Bug-Airfall_spritesheet.png", "group": 9211 },
     "groundfall": { "sheet": "Bug-Groundfall_sprite.png", "group": 9212 },
     "getup": { "sheet": "Bug-Getup_spritesheet.png", "group": 9213 }

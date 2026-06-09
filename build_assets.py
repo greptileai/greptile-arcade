@@ -14,7 +14,7 @@ Ikemen loads sprites from .sff files, not loose PNGs.
 
 The SFF v2 layout is taken from Ikemen-GO/src/image.go:
   header(512) | sprite nodes(28B each) | palette nodes(16B each) | LDATA blob
-  - sprite node: group,num,w,h,axisX,axisY,link(u16) fmt,coldepth(u8)
+  - sprite node: group,num,w,h(u16),axisX,axisY(i16),link(u16) fmt,coldepth(u8)
                  dataOfs,dataLen(u32) palIdx,flags(u16); size==0 => linked
   - palette node: group,num,numcols,link(u16) ofs,size(u32); size==0 => linked
   - PNG sprite (fmt 12): payload = u32 length prefix + PNG bytes
@@ -45,6 +45,8 @@ KOMODO_WINNER_SFF = ROOT / "extracted/data/ikemen1/komodo_winner.sff"
 SIG = b"ElecbyteSpr\x00"
 ROUND_HISTORY_GROUP = 9300
 ROUND_HISTORY_ACTIONS = {9300, 9301, 9302}
+WINNER_IDLE_ACTION = 9400
+GENERATED_ACTIONS = ROUND_HISTORY_ACTIONS | {WINNER_IDLE_ACTION}
 GLITTER_SPECS = [
     (1, "glitter-01.png", (45, 45)),
     (2, "glitter-02.png", (38, 38)),
@@ -64,7 +66,6 @@ WINNER_TITLE_POS = (258, 196)
 WINNER_RESTART_POS = (506, 398)
 WINNER_POSE_LEFT_POS = (20, 228)
 WINNER_POSE_RIGHT_EDGE_X = 1260
-WINNER_POSE_SCREEN = (1280, 720)
 WINNER_POSE_CANVAS = (456, 456)
 WINNER_POSE_BASELINE_Y = 418
 WINNER_GLITTER_PREVIEW_POSITIONS = [
@@ -80,18 +81,6 @@ WINNER_GLITTER_PREVIEW_POSITIONS = [
     (1202, 300),
     (42, 22),
 ]
-ROUND_HISTORY_AIR_BLOCK = f"""
-; BEGIN KOMODO ROUND HISTORY HUD
-[Begin Action 9300]
-{ROUND_HISTORY_GROUP},0, 0,0, -1
-
-[Begin Action 9301]
-{ROUND_HISTORY_GROUP},1, 0,0, -1
-
-[Begin Action 9302]
-{ROUND_HISTORY_GROUP},2, 0,0, -1
-; END KOMODO ROUND HISTORY HUD
-"""
 CHARACTER_TARGETS = {
     "greptile": {
         "dir": ROOT / "extracted/chars/greptile",
@@ -141,7 +130,7 @@ def read_sff_v2(path):
     sprites = []
     for i in range(num_spr):
         off = first_spr_ofs + i * 28
-        grp, num, w, h, ax, ay, link = struct.unpack_from("<7H", data, off)
+        grp, num, w, h, ax, ay, link = struct.unpack_from("<4H2hH", data, off)
         fmt, coldepth = data[off + 14], data[off + 15]
         dofs, dlen = struct.unpack_from("<2I", data, off + 16)
         palidx, flags = struct.unpack_from("<2H", data, off + 24)
@@ -200,7 +189,7 @@ def write_sff_v2(path, sprites, palettes):
         else:
             dofs, dlen = 0, 0
         spr_nodes += struct.pack(
-            "<7H", s["group"], s["number"], s["w"], s["h"], s["ax"], s["ay"], s["link"]
+            "<4H2hH", s["group"], s["number"], s["w"], s["h"], s["ax"], s["ay"], s["link"]
         )
         spr_nodes += bytes((s["fmt"], s["coldepth"]))
         spr_nodes += struct.pack("<2I", dofs, dlen)
@@ -344,7 +333,7 @@ def validate_character_assets(cfg=None, air_path=None):
         for a in air_actions
         if str(a) not in actions
         and a not in preserve_actions
-        and a not in ROUND_HISTORY_ACTIONS
+        and a not in GENERATED_ACTIONS
     )
     extra = sorted(int(a) for a in actions if int(a) not in air_actions)
     extra_preserved = sorted(a for a in preserve_actions if a not in air_actions)
@@ -448,7 +437,7 @@ def patch_air_for_variant(cfg=None, path=None):
         cursor = end
     chunks.append(text[cursor:])
 
-    patched = ensure_round_history_air_actions("".join(chunks))
+    patched = ensure_generated_air_actions("".join(chunks), cfg)
     out = patched.encode("utf-8")
     if had_bom:
         out = codecs.BOM_UTF8 + out
@@ -489,14 +478,43 @@ def patch_air_block(block, action, cfg):
     return "".join(out_lines)
 
 
-def ensure_round_history_air_actions(text):
+def winner_idle_air_frames(cfg):
+    if cfg["_variant"] == "bug":
+        return [(0, 13), (-3, 6), (-5, 6), (-3, 6), (0, 13)]
+    return [(0, 12), (-4, 6), (-6, 6), (-4, 6), (0, 12)]
+
+
+def generated_air_block(cfg):
+    winner_frames = "\n".join(
+        f"9000,3, 0,{y_offset}, {duration}"
+        for y_offset, duration in winner_idle_air_frames(cfg)
+    )
+    return f"""
+; BEGIN KOMODO GENERATED ACTIONS
+[Begin Action 9300]
+{ROUND_HISTORY_GROUP},0, 0,0, -1
+
+[Begin Action 9301]
+{ROUND_HISTORY_GROUP},1, 0,0, -1
+
+[Begin Action 9302]
+{ROUND_HISTORY_GROUP},2, 0,0, -1
+
+[Begin Action {WINNER_IDLE_ACTION}]
+LoopStart
+{winner_frames}
+; END KOMODO GENERATED ACTIONS
+"""
+
+
+def ensure_generated_air_actions(text, cfg):
     text = re.sub(
-        r"\n?; BEGIN KOMODO ROUND HISTORY HUD.*?; END KOMODO ROUND HISTORY HUD\s*",
+        r"\n?; BEGIN KOMODO (?:ROUND HISTORY HUD|GENERATED ACTIONS).*?; END KOMODO (?:ROUND HISTORY HUD|GENERATED ACTIONS)\s*",
         "\n",
         text,
         flags=re.S,
     )
-    return text.rstrip() + "\n" + ROUND_HISTORY_AIR_BLOCK
+    return text.rstrip() + "\n" + generated_air_block(cfg)
 
 
 def validate_air_uses_variant_groups(cfg=None, path=None):
@@ -515,6 +533,8 @@ def validate_air_uses_variant_groups(cfg=None, path=None):
         body = text[match.end() : next_match.start() if next_match else len(text)]
         if action in ROUND_HISTORY_ACTIONS:
             allowed_groups = {ROUND_HISTORY_GROUP}
+        elif action == WINNER_IDLE_ACTION:
+            allowed_groups = {9000}
         elif action in mapped_actions or action in preserve_actions:
             allowed_groups = variant_groups
         else:
@@ -621,7 +641,7 @@ def load_winner_pose(cfg):
         scale = int(sprite_spec.get("scale", cfg.get("scale", 4)))
         if scale <= 0:
             raise ValueError(f"winner pose scale must be positive, got {scale}")
-        return place_winner_pose(
+        return orient_winner_pose(
             normalize_winner_pose(
                 img.resize((frame_size * scale, frame_size * scale), Image.NEAREST)
             ),
@@ -630,13 +650,13 @@ def load_winner_pose(cfg):
 
     winner_pose = cfg.get("winner_pose")
     if winner_pose:
-        return place_winner_pose(
+        return orient_winner_pose(
             normalize_winner_pose(Image.open(repo_asset_path(winner_pose)).convert("RGBA")),
             cfg,
         )
 
     img = load_character_portrait(cfg)
-    return place_winner_pose(normalize_winner_pose(fit_image_contain(img, WINNER_POSE_CANVAS)), cfg)
+    return orient_winner_pose(normalize_winner_pose(fit_image_contain(img, WINNER_POSE_CANVAS)), cfg)
 
 
 def normalize_winner_pose(img):
@@ -653,19 +673,21 @@ def normalize_winner_pose(img):
     return canvas
 
 
-def place_winner_pose(img, cfg):
-    """Return a full-screen transparent winner layer for the character variant."""
+def orient_winner_pose(img, cfg):
+    """Mirror the winner pose when a right-side variant should face inward."""
     side = cfg.get("winner_pose_side", "left")
     mirror = bool(cfg.get("winner_pose_mirror", side == "right"))
     if mirror:
         img = ImageOps.mirror(img)
+    return img
+
+
+def winner_pose_axis(cfg, img):
+    """Shift a normal-sized winner sprite to the requested side via SFF axis metadata."""
+    side = cfg.get("winner_pose_side", "left")
     if side == "right":
-        pos = (WINNER_POSE_RIGHT_EDGE_X - img.width, WINNER_POSE_LEFT_POS[1])
-    else:
-        pos = WINNER_POSE_LEFT_POS
-    canvas = Image.new("RGBA", WINNER_POSE_SCREEN, (0, 0, 0, 0))
-    canvas.alpha_composite(img, pos)
-    return canvas
+        return WINNER_POSE_LEFT_POS[0] - (WINNER_POSE_RIGHT_EDGE_X - img.width), 0
+    return 0, 0
 
 
 def character_portrait_sprites(cfg):
@@ -674,11 +696,12 @@ def character_portrait_sprites(cfg):
     hud = fit_image_contain(img, (100, 100))
     large = fit_image_contain(img, (120, 140))
     winner = load_winner_pose(cfg)
+    winner_ax, winner_ay = winner_pose_axis(cfg, winner)
     return [
         image_sprite(9000, 0, small, 0, 0),
         image_sprite(9000, 1, large, 0, 0),
         image_sprite(9000, 2, hud, 0, 0),
-        image_sprite(9000, 3, winner, 0, 0),
+        image_sprite(9000, 3, winner, winner_ax, winner_ay),
     ]
 
 
@@ -819,6 +842,13 @@ def build_winner_screen(dst=KOMODO_WINNER_SFF):
         for group, number, img, alpha in specs
     ]
     sprites.extend(glitter_sprites(1200))
+    sprites.append(image_sprite(1200, 98, winner_screen_preview("bug"), 0, 0))
+    sprites.append(image_sprite(1200, 99, winner_screen_preview("lizard"), 0, 0))
+    write_sff_v2(dst, sprites, [])
+    print(f"[winner] {display_path(dst)}: packed {len(sprites)} winner screen sprites")
+
+
+def winner_screen_preview(variant):
     preview = Image.new("RGBA", (1280, 720), WINNER_BG_COLOR)
     for img, pos, alpha in [
         (load_winner_city_floor(), (0, 0), 1),
@@ -829,10 +859,14 @@ def build_winner_screen(dst=KOMODO_WINNER_SFF):
         preview.alpha_composite(apply_alpha(img, alpha), pos)
     for (number, filename, size), pos in zip(GLITTER_SPECS, WINNER_GLITTER_PREVIEW_POSITIONS):
         preview.alpha_composite(apply_alpha(load_glitter_png(number, filename, size), 0.45), pos)
-    preview.alpha_composite(load_winner_pose(load_action_map("lizard")), (0, 0))
-    sprites.append(image_sprite(1200, 99, preview, 0, 0))
-    write_sff_v2(dst, sprites, [])
-    print(f"[winner] {display_path(dst)}: packed {len(sprites)} winner screen sprites")
+    preview_cfg = load_action_map(variant)
+    preview_winner = load_winner_pose(preview_cfg)
+    preview_ax, preview_ay = winner_pose_axis(preview_cfg, preview_winner)
+    preview.alpha_composite(
+        preview_winner,
+        (WINNER_POSE_LEFT_POS[0] - preview_ax, WINNER_POSE_LEFT_POS[1] - preview_ay),
+    )
+    return preview
 
 
 def build_screenpack_screens():
