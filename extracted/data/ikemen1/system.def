@@ -1984,12 +1984,13 @@ fadeout.time = 15
 skip.key = a
 cancel.key = b, c, x, y, z, s
 overlay.alpha = 0,256
-;Winner pose. Sprite 9000,3 is a full-screen transparent layer packed into each mascot character SFF.
-p1.offset = 0, 0
+;Winner pose. Action 9400 is generated in each mascot AIR from sprite 9000,3.
+p1.anim = 9400
+p1.offset = 20, 228
 p1.spr = 9000,3
 p1.layerno = 2
 p1.facing = 1
-p1.scale = 1,1
+p1.scale = 0.25,0.25
 p1.window = 0,0, 1279,719
 p1.localcoord = 1280,720
 p1.name.offset = 0,0
@@ -2026,7 +2027,7 @@ mask = 1
 [VictoryBG Grid]
 type = normal
 spriteno = 1200,1
-layerno = 1
+layerno = 0
 start = -640,0
 mask = 1
 
