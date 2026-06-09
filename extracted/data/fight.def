@@ -3021,7 +3021,7 @@ p1.win.bg1.offset = 540, 610
 p1.win.bg0.anim = 586
 p1.win.bg0.offset = 640, 690
 p1.win.font = 1,0,1
-p1.win.text = "%s"
+p1.win.text = "%s wins"
 p1.win.displaytime = 180
 p1.win.snd     = 2,3
 
@@ -3031,7 +3031,7 @@ p2.win.bg1.offset = 740, 610
 p2.win.bg0.anim = 586
 p2.win.bg0.offset = 640, 690
 p2.win.font = 1,0,-1
-p2.win.text = "%s"
+p2.win.text = "%s wins"
 p2.win.displaytime = 180
 p2.win.snd     = 2,3
 
@@ -3042,7 +3042,7 @@ p1.win2.bg1.offset = 540, 610
 p1.win2.bg0.anim = 586
 p1.win2.bg0.offset = 640, 690
 p1.win2.font = 1,0,1
-p1.win2.text = "%s and %s"
+p1.win2.text = "%s wins"
 p1.win2.displaytime = 180
 p1.win2.snd     = 2,3
 
@@ -3052,7 +3052,7 @@ p2.win2.bg1.offset = 740, 610
 p2.win2.bg0.anim = 586
 p2.win2.bg0.offset = 640, 690
 p2.win2.font = 1,0,-1
-p2.win2.text = "%s and %s"
+p2.win2.text = "%s wins"
 p2.win2.displaytime = 180
 p2.win2.snd     = 2,3
 
@@ -3063,7 +3063,7 @@ p1.win3.bg1.offset = 540, 610
 p1.win3.bg0.anim = 586
 p1.win3.bg0.offset = 640, 690
 p1.win3.font = 1,0,1
-p1.win3.text = "Team %s"
+p1.win3.text = "%s wins"
 p1.win3.displaytime = 180
 p1.win3.snd     = 2,3
 
@@ -3073,7 +3073,7 @@ p2.win3.bg1.offset = 740, 610
 p2.win3.bg0.anim = 586
 p2.win3.bg0.offset = 640, 690
 p2.win3.font = 1,0,-1
-p2.win3.text = "Team %s"
+p2.win3.text = "%s wins"
 p2.win3.displaytime = 180
 p2.win3.snd     = 2,3
 
@@ -3084,7 +3084,7 @@ p1.win4.bg1.offset = 540, 610
 p1.win4.bg0.anim = 586
 p1.win4.bg0.offset = 640, 690
 p1.win4.font = 1,0,1
-p1.win4.text = "Team %s"
+p1.win4.text = "%s wins"
 p1.win4.displaytime = 180
 p1.win4.snd     = 2,3
 
@@ -3094,7 +3094,7 @@ p2.win4.bg1.offset = 740, 610
 p2.win4.bg0.anim = 586
 p2.win4.bg0.offset = 640, 690
 p2.win4.font = 1,0,-1
-p2.win4.text = "Team %s"
+p2.win4.text = "%s wins"
 p2.win4.displaytime = 180
 p2.win4.snd     = 2,3
 
@@ -3102,58 +3102,66 @@ p2.win4.snd     = 2,3
 ai.win.displaytime = 170
 ai.win.offset = 640, 610
 ai.win.font = 4,0
+ai.win.text = "Bug wins"
 ai.win.scale = 1, 1
-ai.win.anim = 583
+;ai.win.anim = 583
 ai.win.snd     = 2,4
 
 ai.win2.displaytime = 170
 ai.win2.offset = 640, 610
 ai.win2.font = 4,0
+ai.win2.text = "Bug wins"
 ai.win2.scale = 1, 1
-ai.win2.anim = 583
+;ai.win2.anim = 583
 ai.win2.snd     = 2,4
 
 ai.win3.displaytime = 170
 ai.win3.offset = 640, 610
 ai.win3.font = 4,0
+ai.win3.text = "Bug wins"
 ai.win3.scale = 1, 1
-ai.win3.anim = 583
+;ai.win3.anim = 583
 ai.win3.snd     = 2,4
 
 ai.win4.displaytime = 170
 ai.win4.offset = 640, 610
 ai.win4.font = 4,0
+ai.win4.text = "Bug wins"
 ai.win4.scale = 1, 1
-ai.win4.anim = 583
+;ai.win4.anim = 583
 ai.win4.snd     = 2,4
 
 ; AI Lose
 ai.lose.displaytime = 170
 ai.lose.offset = 640, 610
 ai.lose.font = 4,0
+ai.lose.text = "Lizard wins"
 ai.lose.scale = 1, 1
-ai.lose.anim = 582
+;ai.lose.anim = 582
 ai.lose.snd     = 2,3
 
 ai.lose2.displaytime = 170
 ai.lose2.offset = 640, 610
 ai.lose2.font = 4,0
+ai.lose2.text = "Lizard wins"
 ai.lose2.scale = 1, 1
-ai.lose2.anim = 582
+;ai.lose2.anim = 582
 ai.lose2.snd     = 2,3
 
 ai.lose3.displaytime = 170
 ai.lose3.offset = 640, 610
 ai.lose3.font = 4,0
+ai.lose3.text = "Lizard wins"
 ai.lose3.scale = 1, 1
-ai.lose3.anim = 582
+;ai.lose3.anim = 582
 ai.lose3.snd     = 2,3
 
 ai.lose4.displaytime = 170
 ai.lose4.offset = 640, 610
 ai.lose4.font = 4,0
+ai.lose4.text = "Lizard wins"
 ai.lose4.scale = 1, 1
-ai.lose4.anim = 582
+;ai.lose4.anim = 582
 ai.lose4.snd     = 2,3
 
 ; Draw text
