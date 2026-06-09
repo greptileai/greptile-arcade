@@ -38,7 +38,7 @@ localcoord = 1280,720       ;Local coordinate space width and height (new in MUG
 [Files]
 spr = system.sff            ;Filename of sprite data
 snd = system.snd            ;Filename of sound data
-logo.storyboard = logo.def  ;Logo storyboard definition (optional)
+logo.storyboard =          ;Logo storyboard definition (optional)
 ;intro.storyboard =         ;Intro storyboard definition (optional)
 select = select.def         ;Character and stage selection list
 fight = fight.def           ;Fight definition filename
@@ -64,7 +64,7 @@ module =                    ;External Lua code
  ;Music will continue to play between screens if the files names
  ;are the same, and both BGMs are specified to loop.
   ;Music to play at title screen.
-title.bgm = sound/Title.mp3
+title.bgm =
 title.bgm.volume = 100    ;volume scaling factor in percent. 100 is default
 title.bgm.loop = 1        ;Set to 0 to prevent looping
 title.bgm.loopstart = 
@@ -123,11 +123,18 @@ hiscore.bgm.loopend =
 [Title Info]
 fadein.time = 10
 fadeout.time = 10
-menu.pos = 1240,330
+title.text =
+title.font = 4,0,0, 255,255,255
+title.offset = 640,150
+title.scale = 1.0,1.0
+title.layerno = 2
+menu.pos = -9999,-9999
 menu.tween.factor = 0.5
-menu.item.font = 4,0,-1
-menu.item.active.font = 4,0,-1, 123,206,255
-menu.item.spacing = 0, 54
+menu.item.font = 3,0,0, 146,90,220
+menu.item.active.font = 3,0,0, 255,255,255
+menu.item.scale = 0.8,0.8
+menu.item.active.scale = 0.8,0.8
+menu.item.spacing = 0, 0
 menu.item.layerno = 2
 menu.item.active.layerno = 2
 
@@ -138,19 +145,19 @@ loading.xshear = 0.25
 loading.text = NOW LOADING...
 	
 footer.title.font = default-3x5.def, 0, 1, 191, 191, 191, 255, -1
-footer.title.offset = 5, 721
+footer.title.offset = -9999, -9999
 footer.title.scale = 3,3
 
 footer.info.font = default-3x5.def, 0, 0, 191, 191, 191, 255, -1
-footer.info.offset = 640, 721
+footer.info.offset = -9999, -9999
 footer.info.scale = 3,3
 
 footer.version.font = default-3x5.def, 0, -1, 191, 191, 191, 255, -1
-footer.version.offset = 1275, 721
+footer.version.offset = -9999, -9999
 footer.version.scale = 3,3
 
 footer.overlay.col = 0, 0, 64
-footer.overlay.alpha = 255, 100
+footer.overlay.alpha = 0, 0
 footer.overlay.window = 0, 700, 1280, 720
 
 ;Network menu
@@ -187,157 +194,50 @@ cancel.snd = 100,2
 ; Flexible submenu grouping.
 ;Full documentation of this feature is available on Ikemen GO features wiki
 
-; Submenu: Arcade
-menu.itemname.menuarcade = ARCADE
-menu.itemname.menuarcade.arcade = SINGLE MODE
-menu.itemname.menuarcade.teamarcade = TEAM ARCADE
-menu.itemname.menuarcade.teamcoop = TEAM CO-OP
-menu.itemname.menuarcade.back = BACK
-
-; Submenu: Versus
-menu.itemname.menuversus = VS MODE
-menu.itemname.menuversus.versus = 1P VS 2P
-menu.itemname.menuversus.teamversus = TEAM VERSUS
-menu.itemname.menuversus.versuscoop = VERSUS CO-OP
-menu.itemname.menuversus.freebattle = QUICK MATCH
-menu.itemname.menuversus.back = BACK
-
-; Submenu: Story Mode
-menu.itemname.storymode = STORY MODE
-; story arcs menu items are automatically added before storymode.back
-menu.itemname.storymode.back = BACK
-
-; Submenu: Network
-menu.itemname.menunetwork = NETWORK
-menu.itemname.menunetwork.serverhost = HOST GAME
-menu.itemname.menunetwork.serverjoin = JOIN GAME
-menu.itemname.menunetwork.back = BACK
-
-; known IP addresses show up before serverjoin.back item
-menu.itemname.menunetwork.serverjoin.joinadd = NEW ADDRESS
-menu.itemname.menunetwork.serverjoin.back = BACK
-
-; This group is hidden and should not be moved to other menus.
-; It's opened automatically, after synchronization with online player.
-menu.itemname.server.netplayversus = VERSUS 2P
-menu.itemname.server.netplayteamcoop = ARCADE CO-OP
-menu.itemname.server.netplaysurvivalcoop = SURVIVAL CO-OP
-menu.itemname.server.back = EXIT
-
-; Submenu: Practice
-menu.itemname.menupractice = PRACTICE
-menu.itemname.menupractice.training = TRAINING
-menu.itemname.menupractice.back = BACK
-
-; Submenu: Mission
-menu.itemname.menumission = MISSION
-menu.itemname.menumission.survival = SURVIVAL
-menu.itemname.menumission.survivalcoop = SURVIVAL CO-OP
-menu.itemname.menumission.timeattack = TIME ATTACK
-menu.itemname.menumission.bonusgames = BONUS GAMES
-menu.itemname.menumission.back = BACK
-
-; Submenu: Mission => Bonus Games
-; bonus characters menu items are automatically added before bonusgames.back
-menu.itemname.menumission.bonusgames.back = BACK
-
-; Submenu: Watch Mode
-menu.itemname.menuwatch = WATCH MODE
-menu.itemname.menuwatch.watch = CPU MATCH
-menu.itemname.menuwatch.randomtest = RANDOMTEST
-menu.itemname.menuwatch.replay = REPLAY
-menu.itemname.menuwatch.back = BACK
-
-; Options
-menu.itemname.options = OPTIONS
-
-; Exit Game
-menu.itemname.exit = EXIT
+; Single cabinet flow: title -> VS/start -> fight -> winner -> title.
+menu.itemname.play = Play
 
 ;----------------------------
 ;Title background definition
 [TitleBGdef]
-bgclearcolor = 255,255,255
+spr = komodo_start.sff
+bgclearcolor = 126,147,255
 
-[TitleBG Background Sky]
+[TitleBG City]
 type = normal
-spriteno = 100,0
+spriteno = 1000,0
 layerno = 0
 start = -640,0
-
-[TitleBG Background Clouds Top]
-type = normal
-spriteno = 100,2
-layerno = 0
-start = -640, -50
-tile = 1,0
-velocity = -0.1, 0
-window = 0,0, 1279,959
 mask = 1
 
-[TitleBG Background Clouds Bottom]
+[TitleBG Logo]
 type = normal
-spriteno = 100,3
-layerno = 0
-start = -640, 0
-tile = 1,0
-velocity = -0.7, 0
-window = 0,0, 1279,959
-mask = 1
-
-
-[TitleBG Background Black Bars]
-type = normal
-spriteno = 100,1
-layerno = 0
-start = -640,0
-trans = add1
-mask = 1
-
-
-[TitleBG Background Black Menu Bars]
-type = normal
-spriteno = 98,0
-layerno = 0
-start = 640,282
-trans = add1
-mask = 1
-
-[TitleBG Title LogoShadow]
-type = normal
-spriteno = 0, 2
+spriteno = 1000,1
 layerno = 1
-start = -250,155
+start = -310,45
+scale = .75,.75
 mask = 1
-alpha = 256,96
-trans = add
-sin.y = 15, 264, 2
 
-[TitleBG Title LogoShadow]
+[TitleBG Dino]
 type = normal
-spriteno = 0, 3
+spriteno = 1000,2
 layerno = 1
-start = -250,155
+start = -570,390
 mask = 1
-alpha = 256,96
-trans = add
-sin.y = 15, 264, 32
 
-[TitleBG Title Logo]
+[TitleBG Bug]
 type = normal
-spriteno = 0, 0
+spriteno = 1000,3
 layerno = 1
-start = -250,155
+start = 255,400
 mask = 1
-sin.y = 15, 264, 2
 
-[TitleBG Title Logo 2]
+[TitleBG Play Button]
 type = normal
-spriteno = 0, 1
+spriteno = 1000,4
 layerno = 1
-start = -250,155
+start = -210,385
 mask = 1
-sin.y = 15, 264, 32
 
 ;----------------------------
 [Infobox] ;(new in MUGEN 1.0)
@@ -924,21 +824,21 @@ mask = 1
 
 ;-------------------------------------------------------------------
 [VS Screen]
-time = 390                   ;Time to show screen
+time = 999999                ;Wait on the Start prompt until player confirms
 fadein.time = 20
 fadeout.time = 25
 
 ;Match text in arcade modes
-match.text = Match %i        ;%i can be used for the match number
-match.offset = 640, 85
-match.font = 2,0,0
-match.scale = 1.5,1.5
+match.text =
+match.offset = -9999, -9999
+match.font = 4,0,0, 126,94,255
+match.scale = 0.75,0.75
 
 ;Big portraits
-p1.num = 4
-p1.anim = 0
+p1.num = 0
+p1.anim = -1
 ;p1.spr = 9000, 1
-p1.offset = 444, 540
+p1.offset = -9999, -9999
 p1.facing = 1
 p1.scale = 0.75,0.75
 p1.window = 0,30, 539,589
@@ -946,10 +846,10 @@ p1.spacing = -100,0
 p1.padding = 1
 p1.applypal = 1
 
-p2.num = 4
-p2.anim = 0
+p2.num = 0
+p2.anim = -1
 ;p2.spr = 9000, 1
-p2.offset = 836, 540
+p2.offset = -9999, -9999
 p2.facing = -1
 p2.scale = 0.75,0.75
 p2.window = 741,30, 1280,589
@@ -961,16 +861,16 @@ p1.done.anim = 181
 p2.done.anim = 181
 
 ;Names
-p1.name.num = 1              ;Not used for co-op
-p1.name.offset = 20,615      ;Position to put name
-p1.name.font = 3,0,1         ;Set to -1 for no display
+p1.name.num = 0              ;Not used for co-op
+p1.name.offset = -9999,-9999 ;Position to put name
+p1.name.font = -1            ;Set to -1 for no display
 p1.name.spacing = 15,25      ;Space between each name for players on the same team
-p2.name.num = 1              ;Not used for co-op
-p2.name.offset = 1260,615
-p2.name.font = 3,0,-1
+p2.name.num = 0              ;Not used for co-op
+p2.name.offset = -9999,-9999
+p2.name.font = -1
 p2.name.spacing = -15,25
 
-orderselect.enabled = 1
+orderselect.enabled = 0
 
 ;Keys
 ; By default all action buttons confirm currently selected order.
@@ -1138,8 +1038,8 @@ p8.value.icon.spr = 810, 5
 p8.value.empty.icon.spr = 810, 9
 
 ;Stage preview
-stage.pos = 640,707
-stage.text = Next Stage: %s
+stage.pos = -9999,-9999
+stage.text =
 stage.offset = 0, -10
 stage.font = 3,0,0
 stage.scale = 0.6, 0.6
@@ -1159,7 +1059,7 @@ timer.offset = 639,550
 timer.font = 8,0, 0, 255,255,242
 timer.scale = 1.0, 1.0
 timer.text = %i
-timer.count = 40
+timer.count = -1
 timer.framespercount = 6
 timer.displaytime = 0
 
@@ -1170,54 +1070,108 @@ done.time = 180
 ;-----------------------
 ;VS Match up screen background
 [VersusBGdef]
+spr = komodo_vs.sff
+bgclearcolor = 126,147,255
 
-[VersusBG Background Sky]
+[VersusBG City]
 type = normal
-spriteno = 204,0
+spriteno = 1100,0
 layerno = 0
 start = -640,0
-
-[VersusBG Background Clouds Top]
-type = normal
-spriteno = 102,2
-layerno = 0
-start = -640, -50
-tile = 1,0
-velocity = -0.05, 0
-trans = add1
-window = 0,0, 1279,959
 mask = 1
 
-[VersusBG Background Clouds Bottom]
+[VersusBG Dino Portrait]
 type = normal
-spriteno = 102,3
-layerno = 0
-start = -640, 0
-tile = 1,0
-velocity = -0.7, 0
-window = 0,0, 1279,959
+spriteno = 1100,1
+layerno = 1
+start = -520,110
+scale = .78,.78
 mask = 1
 
-[VersusBG Background Black Bars]
+[VersusBG Bug Portrait]
 type = normal
-spriteno = 100,1
-layerno = 0
-start = -640,0
-trans = add1
+spriteno = 1100,2
+layerno = 1
+start = 130,110
+scale = .78,.78
 mask = 1
 
-[VersusBG 5]   ;VS Logo
-type = anim
-actionno = 200
-layerno = 1    ;Front
-start = 0,300
+[VersusBG VS Text]
+type = normal
+spriteno = 1100,3
+layerno = 1
+start = -102,245
+mask = 1
 
-[VersusBG 6]   ;Next Match
-type = anim
-actionno = 202
-layerno = 1    ;Front
-start = 18,38
-velocity = -.125,0
+[VersusBG Start Button]
+type = normal
+spriteno = 1100,4
+layerno = 1
+start = -136,445
+mask = 1
+
+[VersusBG Sparkle Tall]
+type = normal
+spriteno = 1100,5
+layerno = 1
+start = -588,30
+mask = 1
+
+[VersusBG Sparkle Circle Left]
+type = normal
+spriteno = 1100,6
+layerno = 1
+start = -245,55
+mask = 1
+
+[VersusBG Sparkle Diamond Left]
+type = normal
+spriteno = 1100,7
+layerno = 1
+start = -548,520
+mask = 1
+
+[VersusBG Sparkle Plus Right]
+type = normal
+spriteno = 1100,8
+layerno = 1
+start = 425,180
+mask = 1
+
+[VersusBG Sparkle Circle Right]
+type = normal
+spriteno = 1100,9
+layerno = 1
+start = 520,480
+mask = 1
+
+[VersusBG Sparkle Circle Top]
+type = normal
+spriteno = 1100,10
+layerno = 1
+start = -40,145
+mask = 1
+
+[VersusBG Sparkle Plus Big]
+type = normal
+spriteno = 1100,11
+layerno = 1
+start = 435,292
+mask = 1
+
+[VersusBG Sparkle Plus Yellow]
+type = normal
+spriteno = 1100,12
+layerno = 1
+start = 245,70
+mask = 1
+
+[VersusBG Sparkle Diamond Yellow]
+type = normal
+spriteno = 1100,13
+layerno = 1
+start = 585,365
+mask = 1
 
 [Begin Action 200]
 Interpolate Scale
@@ -1253,7 +1207,7 @@ Interpolate Scale
 ;-------------------------------------------------------------------
 ;Demo mode definition
 [Demo Mode]
-enabled = 1               ;Set to 1 to enable demo mode, 0 to disable
+enabled = 0               ;Startup screen waits until Play is selected
 select.enabled = 0        ;Set to 1 to display select screen, 0 to disable
 vsscreen.enabled = 0      ;Set to 1 to display versus screen, 0 to disable
 fadein.time = 50          ;Duration of the fade-in effect
@@ -1629,17 +1583,17 @@ storyboard = gameover.def ;Game over storyboard filename
 [Victory Screen]
 enabled = 1
 sounds.enabled = 0        ;Set to 0 to disable char sounds during Victory Screen
-time = 360                ;Time to show screen
+time = 600                ;Time to show screen before returning to startup
 fadein.time = 8
 fadeout.time = 15
 ;Winner's portrait and name
-p1.offset = 150, 80
+p1.offset = 180, 260
 p1.spr = 9000,2
 p1.layerno = 2
 p1.facing = 1
-p1.scale = 0.8,0.8
-p1.window = 0,94, 1279,500
-p1.name.offset = 40,570
+p1.scale = 0.55,0.55
+p1.window = 0,94, 640,650
+p1.name.offset = 80,660
 p1.name.font = 3,3,1
 p1.name.layerno = 2
 p1.applypal = 1
@@ -1653,11 +1607,12 @@ p2.window = 0,94, 1279,500
 p2.applypal = 1
 p2.lose.brightness = 75
 ;Win quote text
-winquote.text = Winner! ;Default win quote text to show
+winquote.text = WINNER!
 winquote.layerno = 2
-winquote.offset = 40,615
+winquote.offset = 640,240
 winquote.textspacing = 0
-winquote.font = 5,0,1
+winquote.font = 4,0,0, 255,255,255
+winquote.scale = 1.4,1.4
 winquote.window = 38,521, 1241,708
 winquote.textwrap = w   ;Word wrap
 winquote.textdelay = 2
@@ -1665,70 +1620,16 @@ winquote.textdelay = 2
 ;-----------------------
 ;Victory screen background
 [VictoryBGdef]
+spr = stages/greptile_city.sff
+bgclearcolor = 126,147,255
 
-[VictoryBG Background Sky]
+[VictoryBG City]
 type = normal
-spriteno = 204,0
+spriteno = 0,0
 layerno = 0
-start = -640,0
-
-[VictoryBG Background Clouds Top]
-type = normal
-spriteno = 102,2
-layerno = 0
-start = -640, -50
-tile = 1,0
-velocity = -0.05, 0
-trans = add1
-window = 0,0, 1279,959
+start = 640,360
+scale = .556,.556
 mask = 1
-
-[VictoryBG Background Clouds Bottom]
-type = normal
-spriteno = 102,3
-layerno = 0
-start = -640, 0
-tile = 1,0
-velocity = -0.7, 0
-window = 0,0, 1279,959
-mask = 1
-
-[VictoryBG Background Black Bars]
-type = normal
-spriteno = 100,10
-layerno = 0
-start = -640,0
-trans = add1
-mask = 1
-
-[VictoryBG Background RedGradient]
-type = normal
-spriteno = 100,11
-layerno = 1
-start = -640,0
-trans = add1
-mask = 1
-
-[VictoryBG Text] ;Victory
-type = anim
-actionno = 203
-layerno = 1      ;Front
-start = -330,56
-velocity = -.125,0
-
-[Begin Action 203]
-202,1, 70,0, 1
-202,1, 60,0, 1
-202,1, 50,0, 1
-202,1, 40,0, 1
-202,1, 30,0, 1
-202,1, 20,0, 1
-202,1, 13,0, 1
-202,1, 8,0, 1
-202,1, 5,0, 1
-202,1, 2,0, 1
-202,1, 1,0, 1
-202,1, 0,0, -1
 
 ;-------------------------------------------------------------------
 ;Win screen definition

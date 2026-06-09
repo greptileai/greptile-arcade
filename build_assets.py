@@ -22,6 +22,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
 ART = ROOT / "greptile-game-images"
+START_UI = ART / "ui/start"
+VS_UI = ART / "ui/vs"
 SIG = b"ElecbyteSpr\x00"
 
 # ---------------------------------------------------------------- SFF reading
@@ -54,7 +56,7 @@ def read_sff_v2(path):
     for i in range(num_pal):
         off = first_pal_ofs + i * 16
         grp, num, ncol, link = struct.unpack_from("<4H", data, off)
-        pofs, psize = struct.unpack_from("<2I", data, off + 16)
+        pofs, psize = struct.unpack_from("<2I", data, off + 8)
         payload = b"" if psize == 0 else data[lofs + pofs: lofs + pofs + psize]
         palettes.append(dict(group=grp, number=num, ncol=ncol, link=link,
                             payload=payload))
@@ -125,6 +127,11 @@ def png_sprite(group, number, png_bytes, w, h, ax, ay):
     return dict(group=group, number=number, w=w, h=h, ax=ax, ay=ay,
                 link=0, fmt=12, coldepth=32, palidx=0, payload=payload)
 
+def image_sprite(group, number, img, ax=0, ay=0):
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return png_sprite(group, number, buf.getvalue(), img.width, img.height, ax, ay)
+
 # ---------------------------------------------------------------- build steps
 def build_character(scale=4):
     src = ROOT / "extracted/chars/kfm/kfm.sff"
@@ -168,9 +175,66 @@ def build_stage(scale=1.2):
           f"axis=({ax},{ay})")
     return img.width, img.height
 
+def build_start_screen():
+    """Pack the startup screen background and UI layers into the active motif."""
+    dst = ROOT / "extracted/data/ikemen1/komodo_start.sff"
+    bg = Image.open(ART / "Screen.png").convert("RGBA")
+    bg = bg.resize((1280, 720), Image.NEAREST)
+    sprites = [image_sprite(1000, 0, bg)]
+
+    for number, name in [
+        (1, "title.png"),
+        (2, "dino.png"),
+        (3, "bug.png"),
+        (4, "play-button.png"),
+    ]:
+        img = Image.open(START_UI / name).convert("RGBA")
+        sprites.append(image_sprite(1000, number, img))
+
+    write_sff_v2(dst, sprites, [])
+    print(f"[start] {dst.relative_to(ROOT)}: packed city bg + "
+          "title/dino/bug/play button")
+
+def build_vs_screen():
+    """Pack the game-start / VS gate artwork into the active motif."""
+    dst = ROOT / "extracted/data/ikemen1/komodo_vs.sff"
+
+    bg = Image.new("RGBA", (1280, 720), (126, 147, 255, 255))
+    city = Image.open(VS_UI / "city.png").convert("RGBA")
+    bg.alpha_composite(city, (0, 20))
+    grid = Image.open(VS_UI / "grid.png").convert("RGBA")
+    bg.alpha_composite(grid, (1, 0))
+
+    sprites = [image_sprite(1100, 0, bg)]
+    for number, name in [
+        (1, "dino-portrait.png"),
+        (2, "bug-portrait.png"),
+        (3, "vs-text.png"),
+        (4, "start-button.png"),
+        (5, "sparkle-plus-tall.png"),
+        (6, "sparkle-circle-large.png"),
+        (7, "sparkle-diamond-small.png"),
+        (8, "sparkle-plus-small.png"),
+        (9, "sparkle-circle-big.png"),
+        (10, "sparkle-circle-large-2.png"),
+        (11, "sparkle-plus-big.png"),
+        (12, "sparkle-plus-big-yellow.png"),
+        (13, "sparkle-diamond-small-yellow.png"),
+    ]:
+        img = Image.open(VS_UI / name).convert("RGBA")
+        sprites.append(image_sprite(1100, number, img))
+
+    write_sff_v2(dst, sprites, [])
+    print(f"[vs] {dst.relative_to(ROOT)}: packed background + "
+          "portraits/VS/start/decorations")
+
 if __name__ == "__main__":
     what = sys.argv[1] if len(sys.argv) > 1 else "all"
     if what in ("all", "char"):
         build_character()
     if what in ("all", "stage"):
         build_stage()
+    if what in ("all", "start"):
+        build_start_screen()
+    if what in ("all", "vs"):
+        build_vs_screen()
