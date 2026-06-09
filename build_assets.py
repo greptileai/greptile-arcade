@@ -236,9 +236,10 @@ def sprite_line_count_by_action(path=CHAR_AIR):
     return counts
 
 
-def validate_character_assets(cfg=None, air_path=CHAR_AIR):
+def validate_character_assets(cfg=None, air_path=None):
     """Validate sheet geometry, group safety, frame references, and AIR coverage."""
     cfg = cfg or load_action_map()
+    air_path = Path(air_path) if air_path is not None else character_target(cfg)["air"]
     source_dir = cfg["_source_dir_abs"]
     variant = cfg["_variant"]
     frame_size = int(cfg["frame_size"])
