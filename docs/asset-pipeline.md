@@ -8,6 +8,9 @@ default active variant is `lizard`; `bug` is available as an alternate.
 
 ## TL;DR
 
+> **You only need this to rebuild assets.** Launching the game needs no Python at
+> all — the engine is a native binary and the SFFs are already committed.
+
 ```bash
 # one-time setup (Homebrew Python blocks global pip, so use a venv)
 python3 -m venv .venv

@@ -13,7 +13,13 @@ how-to; this is the orientation.
 - **This is NOT the engine source.** The engine source lives elsewhere
   (`Ikemen-GO`, read-only reference); never edit engine internals here.
 
-## The one thing to know about assets
+## Launching needs no setup
+
+The engine is a native binary and the greptile SFFs are committed, so **playing
+the game requires no Python, no venv, no rebuild** — just clone and run (see
+below). The venv is only for the *asset tooling*.
+
+## Changing assets (only this part needs Python)
 
 Ikemen loads sprites **only from `.sff` files, never loose PNGs**. To change any
 character action wiring, edit the variant map in
@@ -29,13 +35,17 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python build_assets.py char bug        # alternate bug skin
 ```
 
-Outputs `extracted/chars/greptile/greptile.sff`, patches
-`extracted/chars/greptile/greptile.air` so every action uses the selected
-variant's sprite groups, and builds `extracted/stages/greptile_city.sff`. Full
-details, including the lifebar art spec and how the KFM-repack trick works, are in
-**`docs/asset-pipeline.md`**.
+The venv itself is git-ignored on purpose (it has platform-specific native
+binaries and hardcoded paths); `requirements.txt` is the tracked, reproducible
+source of truth. Outputs `extracted/chars/greptile/greptile.sff` and
+`extracted/stages/greptile_city.sff`. Full details, including the lifebar art
+spec and how the KFM-repack trick works, are in **`docs/asset-pipeline.md`**.
 
 ## Running the game (macOS ARM)
+
+**Simulated fight (AI vs AI)** — greptile vs Kung Fu Man on the city stage. Both
+`-pN.ai 5` flags are what make it a hands-off simulation; the whole runnable game
+(engine binary + SFFs + defs) is committed, so this works straight from a clone:
 
 ```bash
 cd extracted
@@ -43,6 +53,10 @@ cd extracted
   -p1 greptile -p2 kfm -p1.ai 5 -p2.ai 5 \
   -s stages/greptile_city.def -rounds 99 -time -1 -nomusic
 ```
+
+To play it yourself instead, drop `-p1.ai 5` (P1 becomes keyboard/gamepad). The
+`bundle_run.sh` next to the binary is an alternative launcher that resolves paths
+and falls back to the x64 binary.
 
 Renders at 1280×720. macOS blocks CLI `screencapture` (Screen Recording
 permission) — watch live or use the engine's built-in screenshot.
@@ -59,6 +73,18 @@ permission) — watch live or use the engine's built-in screenshot.
 | `extracted/data/select.def` | Registers the `greptile` char + `greptile_city` stage |
 | `extracted/data/fight.def` / `fight.sff` | Lifebar / HUD definition + sprites |
 | `docs/asset-pipeline.md` | Full asset pipeline + lifebar art spec |
+
+## Arcade / 6-button controls
+
+The target arcade cabinets have **6 attack buttons per player**. Ikemen-GO
+exposes 8 attack buttons (`a b c x y z d w`); the extra two — `d` and `w` — are
+**not used** and must stay unbound. `extracted/save/config.ini` has `d`/`w` set
+to `Not used` for all players (keyboard + joystick); keep them that way.
+
+The greptile character already uses only `x y z a b c` (light/medium/heavy punch
+and kick) plus `s` (start/taunt), so **no moves depend on `d`/`w`** — dropping
+them costs nothing. If you add moves, assign them to the six standard buttons
+only. The arcade's own `config.ini` lives on the machine; ours is the reference.
 
 ## Conventions & constraints
 
