@@ -313,7 +313,7 @@ mask = 1
 type = normal
 spriteno = 1000,4
 layerno = 1
-start = -210,385
+start = -210,393
 mask = 1
 
 [Begin Action 1002]
