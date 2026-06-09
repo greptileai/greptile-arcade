@@ -27,8 +27,7 @@ layer0.starttime = 0   ;Time to start display
 layer1.anim =  1
 layer1.offset = 0,176
 ; Music
-bgm = intro.mp3        ;Name of music file to play
-bgm.loop = 0
+; No Bug-specific intro music is packaged.
 ; Total time
 end.time = 300
 
