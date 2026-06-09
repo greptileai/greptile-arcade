@@ -30,7 +30,7 @@ volume = 0
 ;variables repectively, meaning that none are persistent, i.e. all
 ;are reset. If you want your variables to persist between matches,
 ;you need to override state 5900 from common1.cns.
-IntPersistIndex = 60
+IntPersistIndex = 55
 FloatPersistIndex = 40
 
 [Size]
