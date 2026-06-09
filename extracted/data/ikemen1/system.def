@@ -195,6 +195,17 @@ cancel.snd = 100,2
 ;Full documentation of this feature is available on Ikemen GO features wiki
 
 ; Single cabinet flow: title -> VS/start -> fight -> winner -> title.
+menu.itemname.arcade =
+menu.itemname.versus =
+menu.itemname.teamarcade =
+menu.itemname.teamversus =
+menu.itemname.teamcoop =
+menu.itemname.survival =
+menu.itemname.survivalcoop =
+menu.itemname.training =
+menu.itemname.watch =
+menu.itemname.options =
+menu.itemname.exit =
 menu.itemname.play = Play
 
 ;----------------------------
