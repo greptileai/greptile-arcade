@@ -3527,35 +3527,11 @@ triggerall = TeamSide = 1
 trigger1 = RoundNo = 1 && RoundState = 0
 id = 930013
 
-[State -2, Round History Slot 1 Lizard]
-type = VarSet
-triggerall = TeamSide = 1
-triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 0
-trigger1 = Win && !Lose
-v = 56
-value = 1
-
-[State -2, Round History Slot 2 Lizard]
-type = VarSet
-triggerall = TeamSide = 1
-triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 1
-trigger1 = Win && !Lose
-v = 57
-value = 1
-
-[State -2, Round History Slot 3 Lizard]
-type = VarSet
-triggerall = TeamSide = 1
-triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 2
-trigger1 = Win && !Lose
-v = 58
-value = 1
-
 [State -2, Round History Slot 1 Bug]
 type = VarSet
 triggerall = TeamSide = 1
 triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 0
-trigger1 = Lose && !Win
+trigger1 = Win && !Lose
 v = 56
 value = 2
 
@@ -3563,7 +3539,7 @@ value = 2
 type = VarSet
 triggerall = TeamSide = 1
 triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 1
-trigger1 = Lose && !Win
+trigger1 = Win && !Lose
 v = 57
 value = 2
 
@@ -3571,11 +3547,35 @@ value = 2
 type = VarSet
 triggerall = TeamSide = 1
 triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 2
-trigger1 = Lose && !Win
+trigger1 = Win && !Lose
 v = 58
 value = 2
 
-[State -2, Round History Count Lizard]
+[State -2, Round History Slot 1 Lizard]
+type = VarSet
+triggerall = TeamSide = 1
+triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 0
+trigger1 = Lose && !Win
+v = 56
+value = 1
+
+[State -2, Round History Slot 2 Lizard]
+type = VarSet
+triggerall = TeamSide = 1
+triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 1
+trigger1 = Lose && !Win
+v = 57
+value = 1
+
+[State -2, Round History Slot 3 Lizard]
+type = VarSet
+triggerall = TeamSide = 1
+triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) = 2
+trigger1 = Lose && !Win
+v = 58
+value = 1
+
+[State -2, Round History Count Bug]
 type = VarAdd
 triggerall = TeamSide = 1
 triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) < 3
@@ -3583,7 +3583,7 @@ trigger1 = Win && !Lose
 v = 55
 value = 1
 
-[State -2, Round History Count Bug]
+[State -2, Round History Count Lizard]
 type = VarAdd
 triggerall = TeamSide = 1
 triggerall = RoundState >= 3 && RoundNo != var(59) && var(55) < 3

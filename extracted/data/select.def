@@ -191,10 +191,9 @@
  ;Insert your characters below.
 
 greptile, stages/greptile_city.def
-kfm_zss, stages/kfm.def
-kfm720, stages/kfm.def, order=0
-kfm_zaxis, stages/kfm.def, order=0
-randomselect
+bug, stages/greptile_city.def
+; The custom fight HUD expects mascot portrait and round-history assets.
+; Keep non-mascot KFM demo variants out of the selectable roster.
 
 ;-------------------------------------------------------------------------------
 [ExtraStages]
@@ -339,4 +338,3 @@ survival.maxmatches = -1,0,0,0,0,0,0,0,0,0
  ; unlock = true
  ;
  ;Declare your Story Mode arcs below.
-

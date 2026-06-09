@@ -18,20 +18,21 @@ how-to; this is the orientation.
 Ikemen loads sprites **only from `.sff` files, never loose PNGs**. To change any
 character action wiring, edit the variant map in
 `assets/characters/<variant>/action-map.json`, then run the packer. The default
-active variant is `lizard`; `bug` is available explicitly.
+matchup is `greptile` (lizard art) vs `bug` (bug art).
 
 ```bash
 # one-time: Homebrew Python blocks global pip, so use a venv
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-.venv/bin/python build_assets.py all             # default: lizard + stage
-.venv/bin/python build_assets.py char lizard     # active lizard skin
-.venv/bin/python build_assets.py char bug        # alternate bug skin
+.venv/bin/python build_assets.py all             # lizard + bug + stage + HUD
+.venv/bin/python build_assets.py char lizard     # greptile character
+.venv/bin/python build_assets.py char bug        # bug character
 ```
 
 Outputs `extracted/chars/greptile/greptile.sff`, patches
-`extracted/chars/greptile/greptile.air` so every action uses the selected
-variant's sprite groups, and builds `extracted/stages/greptile_city.sff`. Full
+`extracted/chars/greptile/greptile.air`, outputs
+`extracted/chars/bug/bug.sff`, patches `extracted/chars/bug/bug.air`, and builds
+`extracted/stages/greptile_city.sff`. Full
 details, including the lifebar art spec and how the KFM-repack trick works, are in
 **`docs/asset-pipeline.md`**.
 
@@ -40,8 +41,8 @@ details, including the lifebar art spec and how the KFM-repack trick works, are 
 ```bash
 cd extracted
 ./I.K.E.M.E.N-Go.app/Contents/MacOS/Ikemen_GO_MacOSARM \
-  -p1 greptile -p2 kfm -p1.ai 5 -p2.ai 5 \
-  -s stages/greptile_city.def -rounds 99 -time -1 -nomusic
+  -p1 greptile -p2 bug -p1.ai 5 -p2.ai 5 \
+  -s stages/greptile_city.def -rounds 2 -time -1 -nomusic
 ```
 
 Renders at 1280×720. macOS blocks CLI `screencapture` (Screen Recording
@@ -56,16 +57,16 @@ permission) — watch live or use the engine's built-in screenshot.
 | `assets/characters/<variant>/action-map.json` | Sprite sheet → Ikemen action map |
 | `build_assets.py` | PNG sheets → SFF v2 converter + AIR patcher |
 | `extracted/` | Runnable game + packed assets |
-| `extracted/data/select.def` | Registers the `greptile` char + `greptile_city` stage |
+| `extracted/data/select.def` | Registers the `greptile` and `bug` chars + `greptile_city` stage |
 | `extracted/data/fight.def` / `fight.sff` | Lifebar / HUD definition + sprites |
 | `docs/asset-pipeline.md` | Full asset pipeline + lifebar art spec |
 
 ## Conventions & constraints
 
 - Character sprites are PNG32/RGBA (SFF format 12) — no palettes needed.
-- `greptile.sff` keeps **all** KFM sprites and appends the active variant's
-  frames; `greptile.air` should reference only that variant's groups for visual
-  actions.
+- `greptile.sff` and `bug.sff` each keep **all** KFM sprites and append their
+  skin frames; each AIR should reference only that character's skin groups for
+  visual actions.
 - License: base char is KFM (Elecbyte, **CC BY-NC** → non-commercial only);
   engine is MIT. Keep `extracted/LICENSES.txt`.
 - Don't commit the `.venv/` or `__pycache__/`.

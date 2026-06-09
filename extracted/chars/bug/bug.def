@@ -1,29 +1,28 @@
-; Definition file for Greptile (mascot skin)
-; Idle + walk are reskinned with the Greptile mascot; every other animation
-; is the original Kung Fu Man, since greptile.sff keeps all of KFM's sprites.
+; Definition file for Bug (mascot skin)
+; Bug art is packed from greptile-game-images/bug while retaining KFM mechanics.
 ; Base character: Kung Fu Man by Elecbyte, licensed CC BY-NC (see LICENSES.txt).
 
 ; Player information
 [Info]
-name = "Lizard"             ;Name of character
-displayname = "Lizard"      ;Name of character to display
-versiondate = 06,04,2026    ;Version date of character (MM-DD-YYYY or X.XX)
+name = "Bug"                ;Name of character
+displayname = "Bug"         ;Name of character to display
+versiondate = 06,08,2026    ;Version date of character (MM-DD-YYYY or X.XX)
 mugenversion = 1.0          ;Version of M.U.G.E.N character works on (X.XX)
-author = "Greptile (mascot art); base char Kung Fu Man by Elecbyte (CC BY-NC)"
+author = "Greptile bug mascot art; base char Kung Fu Man by Elecbyte (CC BY-NC)"
 pal.defaults = 1,2,3,4      ;Default palettes in order of preference (up to 4)
                             ;Numbering starts from 1
 localcoord = 320,240        ;Local coordinate space width and height
 
 ; Files for the player
 [Files]
-cmd     = greptile.cmd      ;Command set
-cns     = greptile.cns      ;Constants
-st      = greptile.cns      ;States
+cmd     = bug.cmd           ;Command set
+cns     = bug.cns           ;Constants
+st      = bug.cns           ;States
 stcommon = common1.cns      ;Common states (from data/ or motif)
-sprite  = greptile.sff      ;Sprite
-anim    = greptile.air      ;Animation
-sound   = greptile.snd      ;Sound
-ai      = greptile.ai       ;AI hints data (not used)
+sprite  = bug.sff           ;Sprite
+anim    = bug.air           ;Animation
+sound   = bug.snd           ;Sound
+ai      = bug.ai            ;AI hints data (not used)
 movelist = movelist.dat     ;Ikemen feature: Movelist
 
 ; Maps character selection buttons to palette numbers.

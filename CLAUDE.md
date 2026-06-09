@@ -24,34 +24,35 @@ below). The venv is only for the *asset tooling*.
 Ikemen loads sprites **only from `.sff` files, never loose PNGs**. To change any
 character action wiring, edit the variant map in
 `assets/characters/<variant>/action-map.json`, then run the packer. The default
-active variant is `lizard`; `bug` is available explicitly.
+matchup is `greptile` (lizard art) vs `bug` (bug art).
 
 ```bash
 # one-time: Homebrew Python blocks global pip, so use a venv
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-.venv/bin/python build_assets.py all             # default: lizard + stage
-.venv/bin/python build_assets.py char lizard     # active lizard skin
-.venv/bin/python build_assets.py char bug        # alternate bug skin
+.venv/bin/python build_assets.py all             # lizard + bug + stage + HUD
+.venv/bin/python build_assets.py char lizard     # greptile character
+.venv/bin/python build_assets.py char bug        # bug character
 ```
 
 The venv itself is git-ignored on purpose (it has platform-specific native
 binaries and hardcoded paths); `requirements.txt` is the tracked, reproducible
 source of truth. Outputs `extracted/chars/greptile/greptile.sff` and
-`extracted/stages/greptile_city.sff`. Full details, including the lifebar art
-spec and how the KFM-repack trick works, are in **`docs/asset-pipeline.md`**.
+`extracted/chars/bug/bug.sff`, then builds `extracted/stages/greptile_city.sff`.
+Full details, including the lifebar art spec and how the KFM-repack trick works,
+are in **`docs/asset-pipeline.md`**.
 
 ## Running the game (macOS ARM)
 
-**Simulated fight (AI vs AI)** — greptile vs Kung Fu Man on the city stage. Both
+**Simulated fight (AI vs AI)** — greptile vs bug on the city stage. Both
 `-pN.ai 5` flags are what make it a hands-off simulation; the whole runnable game
 (engine binary + SFFs + defs) is committed, so this works straight from a clone:
 
 ```bash
 cd extracted
 ./I.K.E.M.E.N-Go.app/Contents/MacOS/Ikemen_GO_MacOSARM \
-  -p1 greptile -p2 kfm -p1.ai 5 -p2.ai 5 \
-  -s stages/greptile_city.def -rounds 99 -time -1 -nomusic
+  -p1 greptile -p2 bug -p1.ai 5 -p2.ai 5 \
+  -s stages/greptile_city.def -rounds 2 -time -1 -nomusic
 ```
 
 To play it yourself instead, drop `-p1.ai 5` (P1 becomes keyboard/gamepad). The
@@ -70,7 +71,7 @@ permission) — watch live or use the engine's built-in screenshot.
 | `assets/characters/<variant>/action-map.json` | Sprite sheet → Ikemen action map |
 | `build_assets.py` | PNG sheets → SFF v2 converter + AIR patcher |
 | `extracted/` | Runnable game + packed assets |
-| `extracted/data/select.def` | Registers the `greptile` char + `greptile_city` stage |
+| `extracted/data/select.def` | Registers the `greptile` and `bug` chars + `greptile_city` stage |
 | `extracted/data/fight.def` / `fight.sff` | Lifebar / HUD definition + sprites |
 | `docs/asset-pipeline.md` | Full asset pipeline + lifebar art spec |
 
@@ -89,9 +90,9 @@ only. The arcade's own `config.ini` lives on the machine; ours is the reference.
 ## Conventions & constraints
 
 - Character sprites are PNG32/RGBA (SFF format 12) — no palettes needed.
-- `greptile.sff` keeps **all** KFM sprites and appends the active variant's
-  frames; `greptile.air` should reference only that variant's groups for visual
-  actions.
+- `greptile.sff` and `bug.sff` each keep **all** KFM sprites and append their
+  skin frames; each AIR should reference only that character's skin groups for
+  visual actions.
 - License: base char is KFM (Elecbyte, **CC BY-NC** → non-commercial only);
   engine is MIT. Keep `extracted/LICENSES.txt`.
 - Don't commit the `.venv/` or `__pycache__/`.
