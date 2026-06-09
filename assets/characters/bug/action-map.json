@@ -3,6 +3,9 @@
   "variant": "bug",
   "source_dir": "greptile-game-images/bug",
   "portrait": "bug-character.png",
+  "winner_pose": "greptile-game-images/ui/start/bug.png",
+  "winner_pose_side": "right",
+  "winner_pose_mirror": true,
   "frame_size": 24,
   "scale": 4,
   "axis": "bottom-center",
@@ -23,7 +26,6 @@
     "groundfall": { "sheet": "Bug-Groundfall_sprite.png", "group": 9212 },
     "getup": { "sheet": "Bug-Getup_spritesheet.png", "group": 9213 }
   },
-  "preserve_actions": [820],
   "actions": {
     "0": { "sprite": "idle", "frames": [0, 1] },
     "5": { "sprite": "turning", "frames": [0, 1] },
@@ -72,6 +74,7 @@
     "640": { "sprite": "attacking", "frames": [0, 1, 2, 3, 4] },
     "800": { "sprite": "attacking", "frames": [0, 1, 2, 3, 4] },
     "810": { "sprite": "attacking", "frames": [0, 1, 2, 3, 4, 3, 2, 1] },
+    "820": { "sprite": "knockdown", "frames": [0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2] },
     "1000": { "sprite": "attacking", "frames": [0, 1, 2, 3, 4] },
     "1010": { "sprite": "attacking", "frames": [0, 1, 2, 3, 4] },
     "1020": { "sprite": "attacking", "frames": [0, 1, 2, 3, 4] },

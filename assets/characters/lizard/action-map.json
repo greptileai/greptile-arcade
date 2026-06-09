@@ -3,6 +3,11 @@
   "variant": "lizard",
   "source_dir": "greptile-game-images/lizard",
   "portrait": "lizzy-character.png",
+  "winner_pose_sprite": {
+    "sheet": "Attacking_spritesheet.png",
+    "frame": 4,
+    "scale": 19
+  },
   "frame_size": 24,
   "scale": 4,
   "axis": "content-bottom-center",
@@ -65,7 +70,6 @@
       "group": 9113
     }
   },
-  "preserve_actions": [820],
   "actions": {
     "0": {
       "sprite": "idle",
@@ -469,6 +473,24 @@
         3,
         2,
         1
+      ]
+    },
+    "820": {
+      "sprite": "knockdown",
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        4,
+        3,
+        2,
+        1,
+        0,
+        1,
+        2
       ]
     },
     "1000": {

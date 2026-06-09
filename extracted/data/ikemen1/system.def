@@ -210,6 +210,83 @@ layerno = 0
 start = -640,0
 mask = 1
 
+[TitleBG Glitter 01]
+type = anim
+actionno = 1020
+layerno = 1
+start = 260,65
+mask = 1
+
+[TitleBG Glitter 02]
+type = anim
+actionno = 1021
+layerno = 1
+start = 430,108
+mask = 1
+
+[TitleBG Glitter 03]
+type = anim
+actionno = 1022
+layerno = 1
+start = 75,360
+mask = 1
+
+[TitleBG Glitter 04]
+type = anim
+actionno = 1023
+layerno = 1
+start = 540,225
+mask = 1
+
+[TitleBG Glitter 05]
+type = anim
+actionno = 1024
+layerno = 1
+start = 440,520
+mask = 1
+
+[TitleBG Glitter 06]
+type = anim
+actionno = 1025
+layerno = 1
+start = -616,220
+mask = 1
+
+[TitleBG Glitter 07]
+type = anim
+actionno = 1026
+layerno = 1
+start = -450,570
+mask = 1
+
+[TitleBG Glitter 08]
+type = anim
+actionno = 1027
+layerno = 1
+start = -80,495
+mask = 1
+
+[TitleBG Glitter 09]
+type = anim
+actionno = 1028
+layerno = 1
+start = 165,560
+mask = 1
+
+[TitleBG Glitter 10]
+type = anim
+actionno = 1029
+layerno = 1
+start = 520,610
+mask = 1
+
+[TitleBG Glitter 11]
+type = anim
+actionno = 1030
+layerno = 1
+start = -555,50
+mask = 1
+
 [TitleBG Logo]
 type = normal
 spriteno = 1000,1
@@ -219,15 +296,15 @@ scale = .75,.75
 mask = 1
 
 [TitleBG Dino]
-type = normal
-spriteno = 1000,2
+type = anim
+actionno = 1002
 layerno = 1
 start = -570,390
 mask = 1
 
 [TitleBG Bug]
-type = normal
-spriteno = 1000,3
+type = anim
+actionno = 1003
 layerno = 1
 start = 255,400
 mask = 1
@@ -238,6 +315,165 @@ spriteno = 1000,4
 layerno = 1
 start = -210,385
 mask = 1
+
+[Begin Action 1002]
+LoopStart
+1000,2, 0,0, 12
+1000,2, 0,-4, 6
+1000,2, 0,-6, 6
+1000,2, 0,-4, 6
+1000,2, 0,0, 12
+
+[Begin Action 1003]
+LoopStart
+1000,3, 0,0, 13
+1000,3, 0,-3, 6
+1000,3, 0,-5, 6
+1000,3, 0,-3, 6
+1000,3, 0,0, 13
+
+[Begin Action 1020]
+LoopStart
+1000,20, 0,0, 20, , AS0D256
+1000,20, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,20, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,20, 0,0, 36, , AS220D36
+1000,20, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,20, 0,0, 60, , AS0D256
+1000,20, 0,0, 120, , AS0D256
+
+[Begin Action 1021]
+LoopStart
+1000,21, 0,0, 36, , AS0D256
+1000,21, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,21, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,21, 0,0, 36, , AS220D36
+1000,21, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,21, 0,0, 60, , AS0D256
+1000,21, 0,0, 120, , AS0D256
+
+[Begin Action 1022]
+LoopStart
+1000,22, 0,0, 52, , AS0D256
+1000,22, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,22, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,22, 0,0, 36, , AS220D36
+1000,22, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,22, 0,0, 60, , AS0D256
+1000,22, 0,0, 120, , AS0D256
+
+[Begin Action 1023]
+LoopStart
+1000,23, 0,0, 68, , AS0D256
+1000,23, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,23, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,23, 0,0, 36, , AS220D36
+1000,23, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,23, 0,0, 60, , AS0D256
+1000,23, 0,0, 120, , AS0D256
+
+[Begin Action 1024]
+LoopStart
+1000,24, 0,0, 84, , AS0D256
+1000,24, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,24, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,24, 0,0, 36, , AS220D36
+1000,24, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,24, 0,0, 60, , AS0D256
+1000,24, 0,0, 120, , AS0D256
+
+[Begin Action 1025]
+LoopStart
+1000,25, 0,0, 100, , AS0D256
+1000,25, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,25, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,25, 0,0, 36, , AS220D36
+1000,25, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,25, 0,0, 60, , AS0D256
+1000,25, 0,0, 120, , AS0D256
+
+[Begin Action 1026]
+LoopStart
+1000,26, 0,0, 116, , AS0D256
+1000,26, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,26, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,26, 0,0, 36, , AS220D36
+1000,26, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,26, 0,0, 60, , AS0D256
+1000,26, 0,0, 120, , AS0D256
+
+[Begin Action 1027]
+LoopStart
+1000,27, 0,0, 132, , AS0D256
+1000,27, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,27, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,27, 0,0, 36, , AS220D36
+1000,27, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,27, 0,0, 60, , AS0D256
+1000,27, 0,0, 120, , AS0D256
+
+[Begin Action 1028]
+LoopStart
+1000,28, 0,0, 148, , AS0D256
+1000,28, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,28, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,28, 0,0, 36, , AS220D36
+1000,28, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,28, 0,0, 60, , AS0D256
+1000,28, 0,0, 120, , AS0D256
+
+[Begin Action 1029]
+LoopStart
+1000,29, 0,0, 164, , AS0D256
+1000,29, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,29, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,29, 0,0, 36, , AS220D36
+1000,29, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,29, 0,0, 60, , AS0D256
+1000,29, 0,0, 120, , AS0D256
+
+[Begin Action 1030]
+LoopStart
+1000,30, 0,0, 180, , AS0D256
+1000,30, 0,0, 1, , AS0D256
+Interpolate Blend
+1000,30, 0,0, 24, , AS100D156
+Interpolate Blend
+1000,30, 0,0, 36, , AS220D36
+1000,30, 0,0, 12, , AS220D36
+Interpolate Blend
+1000,30, 0,0, 60, , AS0D256
+1000,30, 0,0, 120, , AS0D256
 
 ;----------------------------
 [Infobox] ;(new in MUGEN 1.0)
@@ -1110,68 +1346,225 @@ layerno = 1
 start = -136,445
 mask = 1
 
-[VersusBG Sparkle Tall]
-type = normal
-spriteno = 1100,5
-layerno = 1
-start = -588,30
-mask = 1
-
-[VersusBG Sparkle Circle Left]
-type = normal
-spriteno = 1100,6
-layerno = 1
-start = -245,55
-mask = 1
-
-[VersusBG Sparkle Diamond Left]
-type = normal
-spriteno = 1100,7
-layerno = 1
-start = -548,520
-mask = 1
-
-[VersusBG Sparkle Plus Right]
-type = normal
-spriteno = 1100,8
-layerno = 1
-start = 425,180
-mask = 1
-
-[VersusBG Sparkle Circle Right]
-type = normal
-spriteno = 1100,9
+[VersusBG Glitter 01]
+type = anim
+actionno = 1120
 layerno = 1
 start = 520,480
 mask = 1
 
-[VersusBG Sparkle Circle Top]
-type = normal
-spriteno = 1100,10
+[VersusBG Glitter 02]
+type = anim
+actionno = 1121
 layerno = 1
-start = -40,145
+start = -245,55
 mask = 1
 
-[VersusBG Sparkle Plus Big]
-type = normal
-spriteno = 1100,11
+[VersusBG Glitter 03]
+type = anim
+actionno = 1122
+layerno = 1
+start = -415,165
+mask = 1
+
+[VersusBG Glitter 04]
+type = anim
+actionno = 1123
 layerno = 1
 start = 435,292
 mask = 1
 
-[VersusBG Sparkle Plus Yellow]
-type = normal
-spriteno = 1100,12
+[VersusBG Glitter 05]
+type = anim
+actionno = 1124
 layerno = 1
 start = 245,70
 mask = 1
 
-[VersusBG Sparkle Diamond Yellow]
-type = normal
-spriteno = 1100,13
+[VersusBG Glitter 06]
+type = anim
+actionno = 1125
+layerno = 1
+start = -548,520
+mask = 1
+
+[VersusBG Glitter 07]
+type = anim
+actionno = 1126
+layerno = 1
+start = 425,180
+mask = 1
+
+[VersusBG Glitter 08]
+type = anim
+actionno = 1127
 layerno = 1
 start = 585,365
 mask = 1
+
+[VersusBG Glitter 09]
+type = anim
+actionno = 1128
+layerno = 1
+start = -115,570
+mask = 1
+
+[VersusBG Glitter 10]
+type = anim
+actionno = 1129
+layerno = 1
+start = -40,145
+mask = 1
+
+[VersusBG Glitter 11]
+type = anim
+actionno = 1130
+layerno = 1
+start = -588,30
+mask = 1
+
+[Begin Action 1120]
+LoopStart
+1100,20, 0,0, 20, , AS0D256
+1100,20, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,20, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,20, 0,0, 36, , AS220D36
+1100,20, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,20, 0,0, 60, , AS0D256
+1100,20, 0,0, 120, , AS0D256
+
+[Begin Action 1121]
+LoopStart
+1100,21, 0,0, 36, , AS0D256
+1100,21, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,21, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,21, 0,0, 36, , AS220D36
+1100,21, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,21, 0,0, 60, , AS0D256
+1100,21, 0,0, 120, , AS0D256
+
+[Begin Action 1122]
+LoopStart
+1100,22, 0,0, 52, , AS0D256
+1100,22, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,22, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,22, 0,0, 36, , AS220D36
+1100,22, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,22, 0,0, 60, , AS0D256
+1100,22, 0,0, 120, , AS0D256
+
+[Begin Action 1123]
+LoopStart
+1100,23, 0,0, 68, , AS0D256
+1100,23, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,23, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,23, 0,0, 36, , AS220D36
+1100,23, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,23, 0,0, 60, , AS0D256
+1100,23, 0,0, 120, , AS0D256
+
+[Begin Action 1124]
+LoopStart
+1100,24, 0,0, 84, , AS0D256
+1100,24, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,24, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,24, 0,0, 36, , AS220D36
+1100,24, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,24, 0,0, 60, , AS0D256
+1100,24, 0,0, 120, , AS0D256
+
+[Begin Action 1125]
+LoopStart
+1100,25, 0,0, 100, , AS0D256
+1100,25, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,25, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,25, 0,0, 36, , AS220D36
+1100,25, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,25, 0,0, 60, , AS0D256
+1100,25, 0,0, 120, , AS0D256
+
+[Begin Action 1126]
+LoopStart
+1100,26, 0,0, 116, , AS0D256
+1100,26, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,26, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,26, 0,0, 36, , AS220D36
+1100,26, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,26, 0,0, 60, , AS0D256
+1100,26, 0,0, 120, , AS0D256
+
+[Begin Action 1127]
+LoopStart
+1100,27, 0,0, 132, , AS0D256
+1100,27, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,27, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,27, 0,0, 36, , AS220D36
+1100,27, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,27, 0,0, 60, , AS0D256
+1100,27, 0,0, 120, , AS0D256
+
+[Begin Action 1128]
+LoopStart
+1100,28, 0,0, 148, , AS0D256
+1100,28, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,28, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,28, 0,0, 36, , AS220D36
+1100,28, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,28, 0,0, 60, , AS0D256
+1100,28, 0,0, 120, , AS0D256
+
+[Begin Action 1129]
+LoopStart
+1100,29, 0,0, 164, , AS0D256
+1100,29, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,29, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,29, 0,0, 36, , AS220D36
+1100,29, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,29, 0,0, 60, , AS0D256
+1100,29, 0,0, 120, , AS0D256
+
+[Begin Action 1130]
+LoopStart
+1100,30, 0,0, 180, , AS0D256
+1100,30, 0,0, 1, , AS0D256
+Interpolate Blend
+1100,30, 0,0, 24, , AS100D156
+Interpolate Blend
+1100,30, 0,0, 36, , AS220D36
+1100,30, 0,0, 12, , AS220D36
+Interpolate Blend
+1100,30, 0,0, 60, , AS0D256
+1100,30, 0,0, 120, , AS0D256
 
 [Begin Action 200]
 Interpolate Scale
@@ -1578,58 +1971,298 @@ storyboard = gameover.def ;Game over storyboard filename
 
 ;-------------------------------------------------------------------
 ;Victory screen definition
-;This is the screen that is shown when you win a match in arcade mode.
-;It will not be displayed on the last match of arcade mode.
+;Komodo flow: final winner -> restart prompt -> title.
 [Victory Screen]
 enabled = 1
 sounds.enabled = 0        ;Set to 0 to disable char sounds during Victory Screen
+cpu.enabled = 1
+vs.enabled = 1
+keepside.enabled = 0
 time = 600                ;Time to show screen before returning to startup
 fadein.time = 8
 fadeout.time = 15
-;Winner's portrait and name
-p1.offset = 180, 260
-p1.spr = 9000,2
+skip.key = a
+cancel.key = b, c, x, y, z, s
+overlay.alpha = 0,256
+;Winner pose. Sprite 9000,3 is a full-screen transparent layer packed into each mascot character SFF.
+p1.offset = 0, 0
+p1.spr = 9000,3
 p1.layerno = 2
 p1.facing = 1
-p1.scale = 0.55,0.55
-p1.window = 0,94, 640,650
-p1.name.offset = 80,660
-p1.name.font = 3,3,1
+p1.scale = 1,1
+p1.window = 0,0, 1279,719
+p1.localcoord = 1280,720
+p1.name.offset = 0,0
+p1.name.font = -1,0,0
 p1.name.layerno = 2
-p1.applypal = 1
-;Loser's Portrait
-p2.offset = 1130, 80
-p2.spr = 9000,2
-p2.layerno = 1
-p2.facing = -1
-p2.scale = 0.8,0.8
-p2.window = 0,94, 1279,500
-p2.applypal = 1
-p2.lose.brightness = 75
-;Win quote text
-winquote.text = WINNER!
-winquote.layerno = 2
-winquote.offset = 640,240
+p1.applypal = 0
+;Hide stock loser portrait and stock text; the custom SFF draws the UI.
+p2.spr = -1,0
+p2.anim = -1
+p2.name.font = -1,0,0
+winquote.text =
+winquote.layerno = 0
+winquote.offset = 0,0
 winquote.textspacing = 0
-winquote.font = 4,0,0, 255,255,255
-winquote.scale = 1.4,1.4
-winquote.window = 38,521, 1241,708
+winquote.font = -1,0,0
+winquote.scale = 1,1
+winquote.window =
 winquote.textwrap = w   ;Word wrap
 winquote.textdelay = 2
 
 ;-----------------------
 ;Victory screen background
 [VictoryBGdef]
-spr = stages/greptile_city.sff
+spr = komodo_winner.sff
 bgclearcolor = 126,147,255
 
-[VictoryBG City]
+[VictoryBG City Floor]
 type = normal
-spriteno = 0,0
+spriteno = 1200,0
 layerno = 0
-start = 640,360
-scale = .556,.556
+start = -640,0
 mask = 1
+
+[VictoryBG Grid]
+type = normal
+spriteno = 1200,1
+layerno = 1
+start = -640,0
+mask = 1
+
+[VictoryBG Winner Text]
+type = normal
+spriteno = 1200,2
+layerno = 1
+start = -382,196
+mask = 1
+
+[VictoryBG Restart Button]
+type = normal
+spriteno = 1200,3
+layerno = 1
+start = -134,398
+mask = 1
+
+[VictoryBG Glitter 01]
+type = anim
+actionno = 1220
+layerno = 1
+start = -170,40
+mask = 1
+
+[VictoryBG Glitter 02]
+type = anim
+actionno = 1221
+layerno = 1
+start = 230,405
+mask = 1
+
+[VictoryBG Glitter 03]
+type = anim
+actionno = 1222
+layerno = 1
+start = 50,92
+mask = 1
+
+[VictoryBG Glitter 04]
+type = anim
+actionno = 1223
+layerno = 1
+start = 525,20
+mask = 1
+
+[VictoryBG Glitter 05]
+type = anim
+actionno = 1224
+layerno = 1
+start = 470,565
+mask = 1
+
+[VictoryBG Glitter 06]
+type = anim
+actionno = 1225
+layerno = 1
+start = -221,490
+mask = 1
+
+[VictoryBG Glitter 07]
+type = anim
+actionno = 1226
+layerno = 1
+start = 332,70
+mask = 1
+
+[VictoryBG Glitter 08]
+type = anim
+actionno = 1227
+layerno = 1
+start = -608,212
+mask = 1
+
+[VictoryBG Glitter 09]
+type = anim
+actionno = 1228
+layerno = 1
+start = -603,470
+mask = 1
+
+[VictoryBG Glitter 10]
+type = anim
+actionno = 1229
+layerno = 1
+start = 562,300
+mask = 1
+
+[VictoryBG Glitter 11]
+type = anim
+actionno = 1230
+layerno = 1
+start = -598,22
+mask = 1
+
+[Begin Action 1220]
+LoopStart
+1200,20, 0,0, 20, , AS0D256
+1200,20, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,20, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,20, 0,0, 36, , AS220D36
+1200,20, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,20, 0,0, 60, , AS0D256
+1200,20, 0,0, 120, , AS0D256
+
+[Begin Action 1221]
+LoopStart
+1200,21, 0,0, 36, , AS0D256
+1200,21, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,21, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,21, 0,0, 36, , AS220D36
+1200,21, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,21, 0,0, 60, , AS0D256
+1200,21, 0,0, 120, , AS0D256
+
+[Begin Action 1222]
+LoopStart
+1200,22, 0,0, 52, , AS0D256
+1200,22, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,22, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,22, 0,0, 36, , AS220D36
+1200,22, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,22, 0,0, 60, , AS0D256
+1200,22, 0,0, 120, , AS0D256
+
+[Begin Action 1223]
+LoopStart
+1200,23, 0,0, 68, , AS0D256
+1200,23, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,23, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,23, 0,0, 36, , AS220D36
+1200,23, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,23, 0,0, 60, , AS0D256
+1200,23, 0,0, 120, , AS0D256
+
+[Begin Action 1224]
+LoopStart
+1200,24, 0,0, 84, , AS0D256
+1200,24, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,24, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,24, 0,0, 36, , AS220D36
+1200,24, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,24, 0,0, 60, , AS0D256
+1200,24, 0,0, 120, , AS0D256
+
+[Begin Action 1225]
+LoopStart
+1200,25, 0,0, 100, , AS0D256
+1200,25, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,25, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,25, 0,0, 36, , AS220D36
+1200,25, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,25, 0,0, 60, , AS0D256
+1200,25, 0,0, 120, , AS0D256
+
+[Begin Action 1226]
+LoopStart
+1200,26, 0,0, 116, , AS0D256
+1200,26, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,26, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,26, 0,0, 36, , AS220D36
+1200,26, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,26, 0,0, 60, , AS0D256
+1200,26, 0,0, 120, , AS0D256
+
+[Begin Action 1227]
+LoopStart
+1200,27, 0,0, 132, , AS0D256
+1200,27, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,27, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,27, 0,0, 36, , AS220D36
+1200,27, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,27, 0,0, 60, , AS0D256
+1200,27, 0,0, 120, , AS0D256
+
+[Begin Action 1228]
+LoopStart
+1200,28, 0,0, 148, , AS0D256
+1200,28, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,28, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,28, 0,0, 36, , AS220D36
+1200,28, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,28, 0,0, 60, , AS0D256
+1200,28, 0,0, 120, , AS0D256
+
+[Begin Action 1229]
+LoopStart
+1200,29, 0,0, 164, , AS0D256
+1200,29, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,29, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,29, 0,0, 36, , AS220D36
+1200,29, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,29, 0,0, 60, , AS0D256
+1200,29, 0,0, 120, , AS0D256
+
+[Begin Action 1230]
+LoopStart
+1200,30, 0,0, 180, , AS0D256
+1200,30, 0,0, 1, , AS0D256
+Interpolate Blend
+1200,30, 0,0, 24, , AS100D156
+Interpolate Blend
+1200,30, 0,0, 36, , AS220D36
+1200,30, 0,0, 12, , AS220D36
+Interpolate Blend
+1200,30, 0,0, 60, , AS0D256
+1200,30, 0,0, 120, , AS0D256
 
 ;-------------------------------------------------------------------
 ;Win screen definition

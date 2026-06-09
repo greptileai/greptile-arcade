@@ -30,7 +30,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 ROOT = Path(__file__).resolve().parent
 ART = ROOT / "greptile-game-images"
@@ -39,9 +39,47 @@ DEFAULT_VARIANT = "lizard"
 CHAR_AIR = ROOT / "extracted/chars/greptile/greptile.air"
 CHAR_SFF = ROOT / "extracted/chars/greptile/greptile.sff"
 FIGHT_SFF = ROOT / "extracted/data/fight.sff"
+KOMODO_START_SFF = ROOT / "extracted/data/ikemen1/komodo_start.sff"
+KOMODO_VS_SFF = ROOT / "extracted/data/ikemen1/komodo_vs.sff"
+KOMODO_WINNER_SFF = ROOT / "extracted/data/ikemen1/komodo_winner.sff"
 SIG = b"ElecbyteSpr\x00"
 ROUND_HISTORY_GROUP = 9300
 ROUND_HISTORY_ACTIONS = {9300, 9301, 9302}
+GLITTER_SPECS = [
+    (1, "glitter-01.png", (45, 45)),
+    (2, "glitter-02.png", (38, 38)),
+    (3, "glitter-03.png", (30, 30)),
+    (4, "glitter-04.png", (53, 53)),
+    (5, "glitter-05.png", (53, 53)),
+    (6, "glitter-06.png", (23, 23)),
+    (7, "glitter-07.png", (23, 23)),
+    (8, "glitter-08.png", (23, 23)),
+    (9, "glitter-09.png", (38, 38)),
+    (10, "glitter-10.png", (23, 23)),
+    (11, "glitter-11.png", (38, 60)),
+]
+WINNER_BG_COLOR = (126, 147, 255, 255)
+WINNER_GRID_ALPHA = 0.72
+WINNER_TITLE_POS = (258, 196)
+WINNER_RESTART_POS = (506, 398)
+WINNER_POSE_LEFT_POS = (20, 228)
+WINNER_POSE_RIGHT_EDGE_X = 1260
+WINNER_POSE_SCREEN = (1280, 720)
+WINNER_POSE_CANVAS = (456, 456)
+WINNER_POSE_BASELINE_Y = 418
+WINNER_GLITTER_PREVIEW_POSITIONS = [
+    (470, 40),
+    (870, 405),
+    (690, 92),
+    (1165, 20),
+    (1110, 565),
+    (419, 490),
+    (972, 70),
+    (32, 212),
+    (37, 470),
+    (1202, 300),
+    (42, 22),
+]
 ROUND_HISTORY_AIR_BLOCK = f"""
 ; BEGIN KOMODO ROUND HISTORY HUD
 [Begin Action 9300]
@@ -79,6 +117,11 @@ def display_path(path):
         return path.relative_to(ROOT)
     except ValueError:
         return path
+
+
+def repo_asset_path(path):
+    path = Path(path)
+    return path if path.is_absolute() else ROOT / path
 
 
 # ---------------------------------------------------------------- SFF reading
@@ -214,14 +257,6 @@ def read_air_actions(path=CHAR_AIR):
     return {int(m.group(1)) for m in ACTION_RE.finditer(text)}
 
 
-def all_skin_sprite_groups():
-    groups = set()
-    for path in CHARACTER_ASSETS.glob("*/action-map.json"):
-        cfg = json.loads(path.read_text(encoding="utf-8"))
-        groups.update(int(spec["group"]) for spec in cfg.get("sprites", {}).values())
-    return groups
-
-
 def sprite_line_count_by_action(path=CHAR_AIR):
     raw = Path(path).read_bytes()
     text = raw.decode("utf-8-sig")
@@ -259,6 +294,16 @@ def validate_character_assets(cfg=None, air_path=None):
         portrait = Image.open(portrait_path).convert("RGBA")
         if portrait.width <= 0 or portrait.height <= 0:
             raise ValueError(f"{display_path(portrait_path)}: empty portrait image")
+    winner_pose = cfg.get("winner_pose")
+    if winner_pose:
+        winner_pose_path = repo_asset_path(winner_pose)
+        if not winner_pose_path.exists():
+            raise FileNotFoundError(
+                f"{variant}: missing winner pose image {display_path(winner_pose_path)}"
+            )
+        winner = Image.open(winner_pose_path).convert("RGBA")
+        if winner.width <= 0 or winner.height <= 0:
+            raise ValueError(f"{display_path(winner_pose_path)}: empty winner pose image")
 
     groups = []
     frame_counts = {}
@@ -460,35 +505,32 @@ def validate_air_uses_variant_groups(cfg=None, path=None):
     mapped_actions = {int(action) for action in cfg["actions"]}
     preserve_actions = {int(action) for action in cfg.get("preserve_actions", [])}
     variant_groups = {int(spec["group"]) for spec in cfg["sprites"].values()}
-    skin_groups = all_skin_sprite_groups()
     variant = cfg["_variant"]
     raw = Path(path).read_bytes()
     text = raw.decode("utf-8-sig")
     bad = []
-    preserved_bad = []
     for match in ACTION_RE.finditer(text):
         action = int(match.group(1))
         next_match = ACTION_RE.search(text, match.end())
         body = text[match.end() : next_match.start() if next_match else len(text)]
-        if action not in mapped_actions and action not in preserve_actions:
-            continue
+        if action in ROUND_HISTORY_ACTIONS:
+            allowed_groups = {ROUND_HISTORY_GROUP}
+        elif action in mapped_actions or action in preserve_actions:
+            allowed_groups = variant_groups
+        else:
+            allowed_groups = variant_groups
         for line in body.splitlines():
             sprite = SPRITE_LINE_RE.match(line)
             if not sprite:
                 continue
             group = int(sprite.group(2))
-            if action in mapped_actions and group != -1 and group not in variant_groups:
+            if group != -1 and group not in allowed_groups:
                 bad.append((action, line.strip()))
-            if action in preserve_actions and group in skin_groups:
-                preserved_bad.append((action, line.strip()))
     if bad:
         preview = ", ".join(f"{a}: {line}" for a, line in bad[:12])
-        raise ValueError(f"AIR still references non-{variant} sprites: {preview}")
-    if preserved_bad:
-        preview = ", ".join(f"{a}: {line}" for a, line in preserved_bad[:12])
-        raise ValueError(f"AIR preserved actions still reference skin sprites: {preview}")
+        raise ValueError(f"AIR still references non-{variant}/HUD sprites: {preview}")
     print(
-        f"[validate] AIR mapped sprite refs use {variant} groups "
+        f"[validate] AIR sprite refs use {variant} groups "
         f"{min(variant_groups)}..{max(variant_groups)}"
     )
 
@@ -564,15 +606,79 @@ def load_character_portrait(cfg):
     return sheet.crop((0, 0, frame_size, frame_size))
 
 
+def load_winner_pose(cfg):
+    sprite_spec = cfg.get("winner_pose_sprite")
+    if sprite_spec:
+        frame_size = int(cfg["frame_size"])
+        sheet_path = cfg["_source_dir_abs"] / sprite_spec["sheet"]
+        if not sheet_path.exists():
+            raise FileNotFoundError(f"missing winner pose sheet: {display_path(sheet_path)}")
+        sheet = Image.open(sheet_path).convert("RGBA")
+        frame = int(sprite_spec.get("frame", 0))
+        if frame < 0 or (frame + 1) * frame_size > sheet.width:
+            raise ValueError(f"{display_path(sheet_path)}: invalid winner pose frame {frame}")
+        img = sheet.crop((frame * frame_size, 0, (frame + 1) * frame_size, frame_size))
+        scale = int(sprite_spec.get("scale", cfg.get("scale", 4)))
+        if scale <= 0:
+            raise ValueError(f"winner pose scale must be positive, got {scale}")
+        return place_winner_pose(
+            normalize_winner_pose(
+                img.resize((frame_size * scale, frame_size * scale), Image.NEAREST)
+            ),
+            cfg,
+        )
+
+    winner_pose = cfg.get("winner_pose")
+    if winner_pose:
+        return place_winner_pose(
+            normalize_winner_pose(Image.open(repo_asset_path(winner_pose)).convert("RGBA")),
+            cfg,
+        )
+
+    img = load_character_portrait(cfg)
+    return place_winner_pose(normalize_winner_pose(fit_image_contain(img, WINNER_POSE_CANVAS)), cfg)
+
+
+def normalize_winner_pose(img):
+    """Put each mascot winner pose on a shared canvas so the victory offset works for all chars."""
+    img = img.convert("RGBA")
+    if img.width > WINNER_POSE_CANVAS[0] or img.height > WINNER_POSE_CANVAS[1]:
+        img = fit_image_contain(img, WINNER_POSE_CANVAS)
+    bbox = img.getchannel("A").getbbox()
+    canvas = Image.new("RGBA", WINNER_POSE_CANVAS, (0, 0, 0, 0))
+    if bbox is None:
+        return canvas
+    y = max(0, min(WINNER_POSE_CANVAS[1] - img.height, WINNER_POSE_BASELINE_Y - bbox[3]))
+    canvas.alpha_composite(img, (0, y))
+    return canvas
+
+
+def place_winner_pose(img, cfg):
+    """Return a full-screen transparent winner layer for the character variant."""
+    side = cfg.get("winner_pose_side", "left")
+    mirror = bool(cfg.get("winner_pose_mirror", side == "right"))
+    if mirror:
+        img = ImageOps.mirror(img)
+    if side == "right":
+        pos = (WINNER_POSE_RIGHT_EDGE_X - img.width, WINNER_POSE_LEFT_POS[1])
+    else:
+        pos = WINNER_POSE_LEFT_POS
+    canvas = Image.new("RGBA", WINNER_POSE_SCREEN, (0, 0, 0, 0))
+    canvas.alpha_composite(img, pos)
+    return canvas
+
+
 def character_portrait_sprites(cfg):
     img = load_character_portrait(cfg)
     small = fit_image_contain(img, (25, 25))
     hud = fit_image_contain(img, (100, 100))
     large = fit_image_contain(img, (120, 140))
+    winner = load_winner_pose(cfg)
     return [
         image_sprite(9000, 0, small, 0, 0),
         image_sprite(9000, 1, large, 0, 0),
         image_sprite(9000, 2, hud, 0, 0),
+        image_sprite(9000, 3, winner, 0, 0),
     ]
 
 
@@ -604,6 +710,81 @@ def load_hud_png(name, expected_size):
     return img
 
 
+def load_ui_png(section, name, expected_size=None):
+    path = ART / "ui" / section / name
+    if not path.exists():
+        raise FileNotFoundError(f"missing UI source art: {display_path(path)}")
+    img = Image.open(path).convert("RGBA")
+    if expected_size is not None and img.size != expected_size:
+        raise ValueError(f"{display_path(path)}: expected {expected_size}, got {img.size}")
+    return img
+
+
+def apply_alpha(img, factor):
+    if factor == 1:
+        return img
+    out = img.copy()
+    out.putalpha(out.getchannel("A").point(lambda value: round(value * factor)))
+    return out
+
+
+def load_glitter_png(number, filename, expected_size):
+    img = load_ui_png("glitter", filename, expected_size)
+    if img.mode != "RGBA":
+        raise ValueError(f"{filename}: expected RGBA glitter image")
+    return img
+
+
+def glitter_sprites(group):
+    return [
+        image_sprite(group, 19 + number, load_glitter_png(number, filename, size), 0, 0)
+        for number, filename, size in GLITTER_SPECS
+    ]
+
+
+def load_winner_city_floor():
+    img = load_ui_png("winner", "city-floor.png", (1280, 700))
+    canvas = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
+    canvas.alpha_composite(img, (0, 0))
+    tail_height = 40
+    tail = img.crop((0, img.height - tail_height, img.width, img.height))
+    tail = tail.resize((img.width, 720 - img.height + tail_height), Image.NEAREST)
+    canvas.alpha_composite(tail, (0, img.height - tail_height))
+    return canvas
+
+
+def build_start_screen(dst=KOMODO_START_SFF):
+    """Pack the Komodo startup screen into a dedicated screenpack SFF."""
+    city = Image.open(ART / "Screen.png").convert("RGBA")
+    city = city.resize((1280, 720), Image.NEAREST)
+    specs = [
+        (1000, 0, city),
+        (1000, 1, load_ui_png("start", "title.png", (671, 319))),
+        (1000, 2, load_ui_png("start", "dino.png", (281, 279))),
+        (1000, 3, load_ui_png("start", "bug.png", (329, 274))),
+        (1000, 4, load_ui_png("start", "play-button.png", (420, 95))),
+    ]
+    sprites = [image_sprite(group, number, img, 0, 0) for group, number, img in specs]
+    sprites.extend(glitter_sprites(1000))
+    write_sff_v2(dst, sprites, [])
+    print(f"[start] {display_path(dst)}: packed {len(sprites)} startup screen sprites")
+
+
+def build_vs_screen(dst=KOMODO_VS_SFF):
+    """Pack the Komodo VS screen into a dedicated screenpack SFF."""
+    specs = [
+        (1100, 0, load_ui_png("vs", "city-packed.png", (1280, 720))),
+        (1100, 1, load_ui_png("vs", "dino-portrait.png", (390, 388))),
+        (1100, 2, load_ui_png("vs", "bug-portrait.png", (390, 388))),
+        (1100, 3, load_ui_png("vs", "vs-text.png", (203, 130))),
+        (1100, 4, load_ui_png("vs", "start-button.png", (271, 96))),
+    ]
+    sprites = [image_sprite(group, number, img, 0, 0) for group, number, img in specs]
+    sprites.extend(glitter_sprites(1100))
+    write_sff_v2(dst, sprites, [])
+    print(f"[vs] {display_path(dst)}: packed {len(sprites)} VS screen sprites")
+
+
 def build_hud(dst=FIGHT_SFF):
     """Pack custom fight HUD art into fight.sff."""
     sprites, palettes = read_sff_v2(dst)
@@ -621,6 +802,41 @@ def build_hud(dst=FIGHT_SFF):
         replace_sprite(sprites, image_sprite(group, number, img, ax, ay))
     write_sff_v2(dst, sprites, palettes)
     print(f"[hud] {display_path(dst)}: packed {len(replacements)} health bar sprites")
+
+
+def build_winner_screen(dst=KOMODO_WINNER_SFF):
+    """Pack the Komodo winner screen into a dedicated screenpack SFF."""
+    specs = [
+        (1200, 0, load_winner_city_floor(), 1),
+        (1200, 1, load_ui_png("winner", "grid.png", (1278, 720)), WINNER_GRID_ALPHA),
+        (1200, 2, load_ui_png("winner", "winner-text.png", (766, 148)), 1),
+        (1200, 3, load_ui_png("winner", "restart-button.png", (271, 96)), 1),
+    ]
+    sprites = [
+        image_sprite(group, number, apply_alpha(img, alpha), 0, 0)
+        for group, number, img, alpha in specs
+    ]
+    sprites.extend(glitter_sprites(1200))
+    preview = Image.new("RGBA", (1280, 720), WINNER_BG_COLOR)
+    for img, pos, alpha in [
+        (load_winner_city_floor(), (0, 0), 1),
+        (load_ui_png("winner", "grid.png"), (0, 0), WINNER_GRID_ALPHA),
+        (load_ui_png("winner", "winner-text.png"), WINNER_TITLE_POS, 1),
+        (load_ui_png("winner", "restart-button.png"), WINNER_RESTART_POS, 1),
+    ]:
+        preview.alpha_composite(apply_alpha(img, alpha), pos)
+    for (number, filename, size), pos in zip(GLITTER_SPECS, WINNER_GLITTER_PREVIEW_POSITIONS):
+        preview.alpha_composite(apply_alpha(load_glitter_png(number, filename, size), 0.45), pos)
+    preview.alpha_composite(load_winner_pose(load_action_map("lizard")), (0, 0))
+    sprites.append(image_sprite(1200, 99, preview, 0, 0))
+    write_sff_v2(dst, sprites, [])
+    print(f"[winner] {display_path(dst)}: packed {len(sprites)} winner screen sprites")
+
+
+def build_screenpack_screens():
+    build_start_screen()
+    build_vs_screen()
+    build_winner_screen()
 
 
 def validate_air_variant_in_temp(cfg=None):
@@ -704,6 +920,7 @@ def main(argv):
             validate_air_uses_variant_groups(cfg)
         build_stage()
         build_hud()
+        build_screenpack_screens()
     elif what == "char":
         variant = command_variant(argv)
         build_character(variant)
@@ -720,6 +937,14 @@ def main(argv):
         build_stage()
     elif what in ("hud", "fight"):
         build_hud()
+    elif what == "start":
+        build_start_screen()
+    elif what == "vs":
+        build_vs_screen()
+    elif what == "winner":
+        build_winner_screen()
+    elif what == "screens":
+        build_screenpack_screens()
     elif what == "validate":
         variant = command_variant(argv)
         cfg = load_action_map(variant)
@@ -737,7 +962,7 @@ def main(argv):
     else:
         variants = "|".join(sorted(known_variants))
         raise SystemExit(
-            "usage: build_assets.py [all|char|air|stage|hud|fight|validate|validate-air] "
+            "usage: build_assets.py [all|char|air|stage|hud|fight|start|vs|winner|screens|validate|validate-air] "
             f"[variant]  # variants: {variants}"
         )
 

@@ -16,7 +16,7 @@ default matchup is `greptile` (lizard art) vs `bug` (bug art).
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
-# build everything (lizard + bug characters, stage, HUD)
+# build everything (lizard + bug characters, stage, HUD, screenpack screens)
 .venv/bin/python build_assets.py all
 
 # build one character
@@ -28,6 +28,10 @@ python3 -m venv .venv
 .venv/bin/python build_assets.py air
 .venv/bin/python build_assets.py stage
 .venv/bin/python build_assets.py hud
+.venv/bin/python build_assets.py start
+.venv/bin/python build_assets.py vs
+.venv/bin/python build_assets.py winner
+.venv/bin/python build_assets.py screens
 .venv/bin/python build_assets.py validate lizard
 .venv/bin/python build_assets.py validate-air lizard
 ```
@@ -39,6 +43,9 @@ Output:
 - `extracted/chars/bug/bug.air` — sprite refs patched to bug groups
 - `extracted/stages/greptile_city.sff` — city stage
 - `extracted/data/fight.sff` — fight HUD sprites, including custom health bars
+- `extracted/data/ikemen1/komodo_start.sff` — startup screen art
+- `extracted/data/ikemen1/komodo_vs.sff` — VS/start prompt screen art
+- `extracted/data/ikemen1/komodo_winner.sff` — post-match winner screen art
 
 ## Where things live
 
@@ -50,6 +57,10 @@ Output:
 | `assets/characters/bug/action-map.json` | Bug sheet → Ikemen action map |
 | `greptile-game-images/Screen.png` | Stage background |
 | `greptile-game-images/ui/hud/` | Fight HUD source art |
+| `greptile-game-images/ui/glitter/` | Shared screenpack glitter source art |
+| `greptile-game-images/ui/start/` | Startup screen source art |
+| `greptile-game-images/ui/vs/` | VS/start prompt screen source art |
+| `greptile-game-images/ui/winner/` | Winner screen source art |
 | `build_assets.py` | Converter and AIR patcher |
 | `extracted/` | The runnable game + packed assets |
 | `extracted/data/select.def` | Registers the `greptile` and `bug` chars plus `greptile_city` stage |
