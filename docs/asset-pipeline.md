@@ -1,10 +1,10 @@
 # Asset pipeline — turning PNGs into Ikemen `.sff` files
 
 Ikemen-GO loads sprites **only** from `.sff` files, never from loose PNGs. The
-designer hands us RGBA PNG sprite sheets; `build_assets.py` slices them, upscales
-them, and packs them into SFF v2 with each frame embedded as a PNG32 sprite
-(format 12, RGBA — no palette needed). This doc is the human-readable how-to;
-`build_assets.py`'s docstring documents the binary SFF v2 layout.
+designer hands us RGBA PNG sprite sheets; `build_assets.py` slices them, packs
+them into SFF v2 as PNG32 sprites (format 12, RGBA -- no palette needed), and
+patches the character `.air` animation file from a variant action map. The
+default active variant is `lizard`; `bug` is available as an alternate.
 
 ## TL;DR
 
@@ -16,23 +16,36 @@ them, and packs them into SFF v2 with each frame embedded as a PNG32 sprite
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
-# build everything (character + stage)
+# build everything (default: lizard character + stage)
 .venv/bin/python build_assets.py all
-# or just one:
+
+# choose a specific character skin
+.venv/bin/python build_assets.py char lizard
+.venv/bin/python build_assets.py char bug
+
+# or just one part
 .venv/bin/python build_assets.py char
+.venv/bin/python build_assets.py air
 .venv/bin/python build_assets.py stage
+.venv/bin/python build_assets.py validate lizard
+.venv/bin/python build_assets.py validate-air lizard
 ```
 
 Output:
-- `extracted/chars/greptile/greptile.sff` — mascot character
+- `extracted/chars/greptile/greptile.sff` — KFM fallback sprites plus active skin sprites
+- `extracted/chars/greptile/greptile.air` — sprite refs patched to active skin groups
 - `extracted/stages/greptile_city.sff` — city stage
 
 ## Where things live
 
 | Path | What |
 |------|------|
-| `greptile-game-images/` | Source art the designer exports (RGBA PNG sprite sheets + `Screen.png` stage bg) |
-| `build_assets.py` | The converter (PNG sheets → SFF v2) |
+| `greptile-game-images/lizard/` | Complete lizard character source sheets (24x24 RGBA strips) |
+| `greptile-game-images/bug/` | Complete bug character source sheets (24x24 RGBA strips) |
+| `assets/characters/lizard/action-map.json` | Lizard sheet → Ikemen action map (default) |
+| `assets/characters/bug/action-map.json` | Bug sheet → Ikemen action map |
+| `greptile-game-images/Screen.png` | Stage background |
+| `build_assets.py` | Converter and AIR patcher |
 | `extracted/` | The runnable game + packed assets |
 | `extracted/data/select.def` | Registers the `greptile` char and `greptile_city` stage |
 
@@ -43,11 +56,24 @@ Output:
 ## How the character build works
 
 `build_character()` repacks KFM's `kfm.sff` into `greptile.sff`, byte-copying
-**every** existing KFM sprite/palette and **appending** the mascot frames as
-PNG32 sprites. Because KFM's own sprites survive untouched, the character still
-fights as Kung Fu Man for every animation we haven't overridden. Currently
-overridden: idle (anim 0) and walk (anim 20/21), at sprite groups 9100/9101.
-Frames are upscaled 4× nearest-neighbor.
+**every** existing KFM sprite/palette and **appending** the selected complete
+skin frame set as PNG32 sprites. Keeping KFM data in the SFF preserves fallback
+data, but `greptile.air` is patched so all 117 current action blocks reference
+the selected skin groups or explicit blank `-1` frames.
+
+The lizard and bug sheets are fixed 24x24 RGBA horizontal strips. The packer
+preserves each full cell, including internal transparent offsets, and upscales
+frames 4x to 96x96. Character maps can choose their axis mode; lizard uses
+`content-bottom-center` so transparent padding below the feet does not make the
+fighter float above the stage floor. Do not trim the cells; jump, knockdown,
+dash, and hit motion is drawn inside the transparent cell.
+
+The action maps are in `assets/characters/<variant>/action-map.json`. To change
+which frames a game action uses, edit the variant map and rerun:
+
+```bash
+.venv/bin/python build_assets.py char lizard
+```
 
 ## How the stage build works
 
@@ -66,14 +92,20 @@ cd extracted
 Renders at 1280×720. On macOS, CLI `screencapture` is blocked by Screen Recording
 permission — watch live or use the engine's built-in screenshot.
 
-## Adding new sprite sheets
+## Updating Character Mapping
 
-1. Designer exports an RGBA PNG sprite sheet (frames laid out in a grid, e.g.
-   24×24 frames for idle/walk) into `greptile-game-images/`.
-2. Add a slicing + packing block in `build_assets.py` (mirror how idle/walk are
-   handled), choosing a free sprite group/number and wiring it into the
-   character's `.air` animation.
-3. Re-run `.venv/bin/python build_assets.py char` and verify in-game.
+The lizard and bug sets are complete. The right edit surface is the action map,
+not custom Python blocks:
+
+1. Edit `assets/characters/<variant>/action-map.json`.
+2. Run `.venv/bin/python build_assets.py validate <variant>` to validate sheets,
+   frame references, group collisions, and action coverage.
+3. Run `.venv/bin/python build_assets.py char <variant>`.
+4. Verify in-game.
+
+`char <variant>` also verifies that the patched AIR sprite refs use only the
+selected variant's groups. To check that explicitly, run
+`.venv/bin/python build_assets.py validate-air <variant>`.
 
 ## Lifebar / health-bar art spec
 

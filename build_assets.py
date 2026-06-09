@@ -1,42 +1,73 @@
 #!/usr/bin/env python3
 """
-build_assets.py — pack the Greptile mascot sprite sheets into Ikemen-GO SFF v2 files.
+build_assets.py - pack Greptile game art into Ikemen-GO SFF v2 files.
 
-Two jobs:
-  1. Repack KFM's sprite file into greptile.sff, byte-copying every existing
-     sprite/palette and APPENDING the mascot frames as PNG32 sprites. Because
-     KFM's own sprites survive untouched, the character still fights as Kung Fu
-     Man for every animation we don't override (idle/walk).
-  2. Build a stage SFF from the city background PNG.
+The character build is manifest-driven for complete sprite sets:
+  1. Repack KFM's sprite file into greptile.sff, preserving every existing
+     KFM sprite/palette as fallback data.
+  2. Append the selected variant's frames as PNG32 sprites in fixed groups from
+     assets/characters/<variant>/action-map.json.
+  3. Patch greptile.air in place, replacing sprite references action-by-action
+     while preserving KFM timing, flags, and collision phases.
 
-The SFF v2 layout is taken from the engine source (Ikemen-GO/src/image.go):
+Ikemen loads sprites from .sff files, not loose PNGs.
+
+The SFF v2 layout is taken from Ikemen-GO/src/image.go:
   header(512) | sprite nodes(28B each) | palette nodes(16B each) | LDATA blob
   - sprite node: group,num,w,h,axisX,axisY,link(u16) fmt,coldepth(u8)
                  dataOfs,dataLen(u32) palIdx,flags(u16); size==0 => linked
   - palette node: group,num,numcols,link(u16) ofs,size(u32); size==0 => linked
-  - PNG sprite (fmt 12): payload = u32 length prefix + PNG bytes (engine seeks +4)
+  - PNG sprite (fmt 12): payload = u32 length prefix + PNG bytes
 """
-import struct, sys, io
+from __future__ import annotations
+
+import codecs
+import io
+import json
+import re
+import struct
+import sys
+import tempfile
 from pathlib import Path
+
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
 ART = ROOT / "greptile-game-images"
-START_UI = ART / "ui/start"
-VS_UI = ART / "ui/vs"
+CHARACTER_ASSETS = ROOT / "assets/characters"
+DEFAULT_VARIANT = "lizard"
+CHAR_AIR = ROOT / "extracted/chars/greptile/greptile.air"
+CHAR_SFF = ROOT / "extracted/chars/greptile/greptile.sff"
 SIG = b"ElecbyteSpr\x00"
+
+ACTION_RE = re.compile(r"(?m)^\[Begin Action (\d+)\]")
+SPRITE_LINE_RE = re.compile(
+    r"^(\s*)(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)(.*)$"
+)
+
+
+def display_path(path):
+    path = Path(path)
+    try:
+        return path.relative_to(ROOT)
+    except ValueError:
+        return path
+
 
 # ---------------------------------------------------------------- SFF reading
 def read_sff_v2(path):
-    """Parse an SFF v2 file into (sprites, palettes) with raw payloads attached."""
+    """Parse an SFF v2 file into (sprites, palettes) with raw payloads."""
     data = Path(path).read_bytes()
     if data[:12] != SIG:
         raise ValueError(f"{path}: not an SFF file")
-    ver = data[12:16]                      # verlo3,verlo2,verlo1,verhi
+    ver = data[12:16]  # verlo3, verlo2, verlo1, verhi
     if ver[3] != 2:
         raise ValueError(f"{path}: expected SFF v2, got version byte {ver[3]}")
-    (first_spr_ofs, num_spr, first_pal_ofs, num_pal, lofs, _d, tofs) = struct.unpack_from(
-        "<7I", data, 36)
+
+    first_spr_ofs, num_spr, first_pal_ofs, num_pal, lofs, _d, tofs = struct.unpack_from(
+        "<7I", data, 36
+    )
+
     sprites = []
     for i in range(num_spr):
         off = first_spr_ofs + i * 28
@@ -44,34 +75,49 @@ def read_sff_v2(path):
         fmt, coldepth = data[off + 14], data[off + 15]
         dofs, dlen = struct.unpack_from("<2I", data, off + 16)
         palidx, flags = struct.unpack_from("<2H", data, off + 24)
-        if dlen == 0:                      # linked sprite -> no payload
+        if dlen == 0:
             payload = b""
         else:
             base = tofs if (flags & 1) else lofs
-            payload = data[base + dofs: base + dofs + dlen]
-        sprites.append(dict(group=grp, number=num, w=w, h=h, ax=ax, ay=ay,
-                            link=link, fmt=fmt, coldepth=coldepth,
-                            palidx=palidx, payload=payload))
+            payload = data[base + dofs : base + dofs + dlen]
+        sprites.append(
+            dict(
+                group=grp,
+                number=num,
+                w=w,
+                h=h,
+                ax=ax,
+                ay=ay,
+                link=link,
+                fmt=fmt,
+                coldepth=coldepth,
+                palidx=palidx,
+                payload=payload,
+            )
+        )
+
     palettes = []
     for i in range(num_pal):
         off = first_pal_ofs + i * 16
         grp, num, ncol, link = struct.unpack_from("<4H", data, off)
         pofs, psize = struct.unpack_from("<2I", data, off + 8)
-        payload = b"" if psize == 0 else data[lofs + pofs: lofs + pofs + psize]
-        palettes.append(dict(group=grp, number=num, ncol=ncol, link=link,
-                            payload=payload))
+        payload = b"" if psize == 0 else data[lofs + pofs : lofs + pofs + psize]
+        palettes.append(
+            dict(group=grp, number=num, ncol=ncol, link=link, payload=payload)
+        )
     return sprites, palettes
+
 
 # ---------------------------------------------------------------- SFF writing
 def write_sff_v2(path, sprites, palettes):
-    """Write sprites/palettes to an SFF v2 file. All payloads go into one LDATA
-    blob (flags=0). Linked nodes (empty payload + link) are preserved."""
+    """Write sprites/palettes to an SFF v2 file using a single LDATA blob."""
     n_spr, n_pal = len(sprites), len(palettes)
     first_spr_ofs = 512
     first_pal_ofs = first_spr_ofs + n_spr * 28
     lofs = first_pal_ofs + n_pal * 16
 
     ldata = bytearray()
+
     def stash(payload):
         ofs = len(ldata)
         ldata.extend(payload)
@@ -82,50 +128,325 @@ def write_sff_v2(path, sprites, palettes):
         if s["payload"]:
             dofs, dlen = stash(s["payload"]), len(s["payload"])
         else:
-            dofs, dlen = 0, 0              # linked
-        spr_nodes += struct.pack("<7H", s["group"], s["number"], s["w"], s["h"],
-                                 s["ax"], s["ay"], s["link"])
+            dofs, dlen = 0, 0
+        spr_nodes += struct.pack(
+            "<7H", s["group"], s["number"], s["w"], s["h"], s["ax"], s["ay"], s["link"]
+        )
         spr_nodes += bytes((s["fmt"], s["coldepth"]))
         spr_nodes += struct.pack("<2I", dofs, dlen)
-        spr_nodes += struct.pack("<2H", s["palidx"], 0)   # flags=0 -> LDATA
+        spr_nodes += struct.pack("<2H", s["palidx"], 0)
 
     pal_nodes = bytearray()
     for p in palettes:
         if p["payload"]:
             pofs, psize = stash(p["payload"]), len(p["payload"])
         else:
-            pofs, psize = 0, 0            # linked
+            pofs, psize = 0, 0
         pal_nodes += struct.pack("<4H", p["group"], p["number"], p["ncol"], p["link"])
         pal_nodes += struct.pack("<2I", pofs, psize)
 
-    tofs = lofs                            # no TDATA used
+    tofs = lofs
     header = bytearray(512)
     header[0:12] = SIG
-    header[12:16] = bytes((0, 0, 0, 2))    # v2.0.0.0
-    struct.pack_into("<7I", header, 36, first_spr_ofs, n_spr, first_pal_ofs,
-                     n_pal, lofs, 0, tofs)
+    header[12:16] = bytes((0, 0, 0, 2))
+    struct.pack_into(
+        "<7I", header, 36, first_spr_ofs, n_spr, first_pal_ofs, n_pal, lofs, 0, tofs
+    )
     Path(path).write_bytes(bytes(header) + bytes(spr_nodes) + bytes(pal_nodes) + bytes(ldata))
 
+
+# ---------------------------------------------------------------- config
+def action_map_path(variant):
+    return CHARACTER_ASSETS / variant / "action-map.json"
+
+
+def load_action_map(variant=DEFAULT_VARIANT):
+    path = action_map_path(variant)
+    if not path.exists():
+        raise FileNotFoundError(f"missing action map for variant '{variant}': {path}")
+    cfg = json.loads(path.read_text(encoding="utf-8"))
+    cfg["_variant"] = variant
+    cfg["_map_path"] = path
+    cfg["_source_dir_abs"] = ROOT / cfg["source_dir"]
+    return cfg
+
+
+def read_air_actions(path=CHAR_AIR):
+    raw = Path(path).read_bytes()
+    text = raw.decode("utf-8-sig")
+    return {int(m.group(1)) for m in ACTION_RE.finditer(text)}
+
+
+def all_skin_sprite_groups():
+    groups = set()
+    for path in CHARACTER_ASSETS.glob("*/action-map.json"):
+        cfg = json.loads(path.read_text(encoding="utf-8"))
+        groups.update(int(spec["group"]) for spec in cfg.get("sprites", {}).values())
+    return groups
+
+
+def sprite_line_count_by_action(path=CHAR_AIR):
+    raw = Path(path).read_bytes()
+    text = raw.decode("utf-8-sig")
+    matches = list(ACTION_RE.finditer(text))
+    counts = {}
+    for i, match in enumerate(matches):
+        action = int(match.group(1))
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[start:end]
+        counts[action] = sum(1 for line in body.splitlines() if SPRITE_LINE_RE.match(line))
+    return counts
+
+
+def validate_character_assets(cfg=None, air_path=CHAR_AIR):
+    """Validate sheet geometry, group safety, frame references, and AIR coverage."""
+    cfg = cfg or load_action_map()
+    source_dir = cfg["_source_dir_abs"]
+    variant = cfg["_variant"]
+    frame_size = int(cfg["frame_size"])
+    scale = int(cfg["scale"])
+    axis_mode = cfg.get("axis", "bottom-center")
+    if frame_size <= 0 or scale <= 0:
+        raise ValueError("frame_size and scale must be positive")
+    if axis_mode not in ("bottom-center", "content-bottom-center"):
+        raise ValueError(f"unsupported axis mode: {axis_mode}")
+
+    groups = []
+    frame_counts = {}
+    for name, spec in cfg["sprites"].items():
+        group = int(spec["group"])
+        groups.append(group)
+        path = source_dir / spec["sheet"]
+        if not path.exists():
+            raise FileNotFoundError(f"{name}: missing sprite sheet {path}")
+        img = Image.open(path).convert("RGBA")
+        if img.height != frame_size:
+            raise ValueError(f"{path}: expected height {frame_size}, got {img.height}")
+        if img.width % frame_size:
+            raise ValueError(f"{path}: width {img.width} is not a multiple of {frame_size}")
+        frames = img.width // frame_size
+        if frames <= 0:
+            raise ValueError(f"{path}: no frames")
+        frame_counts[name] = frames
+
+    if len(groups) != len(set(groups)):
+        raise ValueError(f"duplicate {variant} sprite group in action map")
+
+    src_sprites, _ = read_sff_v2(ROOT / "extracted/chars/kfm/kfm.sff")
+    max_base_group = max(s["group"] for s in src_sprites)
+    min_variant_group = min(groups)
+    if min_variant_group <= max_base_group:
+        raise ValueError(
+            f"{variant} group {min_variant_group} collides with base SFF max group "
+            f"{max_base_group}"
+        )
+
+    actions = cfg["actions"]
+    preserve_actions = {int(a) for a in cfg.get("preserve_actions", [])}
+    air_actions = read_air_actions(air_path)
+    overlap = sorted(a for a in preserve_actions if str(a) in actions)
+    missing = sorted(
+        a for a in air_actions if str(a) not in actions and a not in preserve_actions
+    )
+    extra = sorted(int(a) for a in actions if int(a) not in air_actions)
+    extra_preserved = sorted(a for a in preserve_actions if a not in air_actions)
+    if overlap:
+        raise ValueError(f"actions cannot be both mapped and preserved: {overlap}")
+    if missing:
+        raise ValueError(f"action map missing AIR actions: {missing}")
+    if extra:
+        raise ValueError(f"action map includes actions not present in AIR: {extra}")
+    if extra_preserved:
+        raise ValueError(f"preserve_actions includes actions not present in AIR: {extra_preserved}")
+
+    for action, mapping in actions.items():
+        sprite_name = mapping["sprite"]
+        if sprite_name not in cfg["sprites"]:
+            raise ValueError(f"action {action}: unknown sprite {sprite_name}")
+        frames = mapping["frames"]
+        if not frames:
+            raise ValueError(f"action {action}: no frames")
+        max_frame = frame_counts[sprite_name] - 1
+        bad = [f for f in frames if not isinstance(f, int) or f < 0 or f > max_frame]
+        if bad:
+            raise ValueError(
+                f"action {action}: invalid frame(s) {bad} for {sprite_name} 0..{max_frame}"
+            )
+
+    print(
+        f"[validate] {variant} map: {len(cfg['sprites'])} sheets, "
+        f"{sum(frame_counts.values())} frames, {len(actions)} mapped actions, "
+        f"scale={scale}x"
+    )
+    return frame_counts
+
+
 # ---------------------------------------------------------------- sheet slicing
-def slice_sheet(path, frame_w, frame_h, scale):
-    """Return a list of PNG32 byte-blobs, one per frame, upscaled nearest-neighbor."""
+def frame_axis(cell, frame_size, scale, axis_mode):
+    ax = frame_size * scale // 2
+    if axis_mode == "content-bottom-center":
+        bbox = cell.getbbox()
+        ay = (bbox[3] if bbox else frame_size) * scale
+    else:
+        ay = frame_size * scale
+    return ax, ay
+
+
+def slice_fixed_sheet(path, frame_size, scale, axis_mode):
+    """Return full, untrimmed square cells as PNG32 blobs with per-frame axes."""
     sheet = Image.open(path).convert("RGBA")
-    n = sheet.width // frame_w
+    if sheet.height != frame_size or sheet.width % frame_size:
+        raise ValueError(f"{path}: expected {frame_size}px-high horizontal strip")
+    n = sheet.width // frame_size
+    out_size = frame_size * scale
     frames = []
     for i in range(n):
-        box = (i * frame_w, 0, (i + 1) * frame_w, frame_h)
-        frame = sheet.crop(box)
+        cell = sheet.crop((i * frame_size, 0, (i + 1) * frame_size, frame_size))
+        ax, ay = frame_axis(cell, frame_size, scale, axis_mode)
         if scale != 1:
-            frame = frame.resize((frame_w * scale, frame_h * scale), Image.NEAREST)
+            cell = cell.resize((out_size, out_size), Image.NEAREST)
         buf = io.BytesIO()
-        frame.save(buf, format="PNG")
-        frames.append(buf.getvalue())
-    return frames, frame_w * scale, frame_h * scale
+        cell.save(buf, format="PNG")
+        frames.append((buf.getvalue(), ax, ay))
+    return frames, out_size, out_size
+
 
 def png_sprite(group, number, png_bytes, w, h, ax, ay):
-    payload = struct.pack("<I", len(png_bytes)) + png_bytes   # 4-byte len prefix
-    return dict(group=group, number=number, w=w, h=h, ax=ax, ay=ay,
-                link=0, fmt=12, coldepth=32, palidx=0, payload=payload)
+    payload = struct.pack("<I", len(png_bytes)) + png_bytes
+    return dict(
+        group=group,
+        number=number,
+        w=w,
+        h=h,
+        ax=ax,
+        ay=ay,
+        link=0,
+        fmt=12,
+        coldepth=32,
+        palidx=0,
+        payload=payload,
+    )
+
+
+# ---------------------------------------------------------------- AIR patching
+def patch_air_for_variant(cfg=None, path=CHAR_AIR):
+    cfg = cfg or load_action_map()
+    validate_character_assets(cfg, path)
+
+    raw = Path(path).read_bytes()
+    had_bom = raw.startswith(codecs.BOM_UTF8)
+    text = raw.decode("utf-8-sig")
+    matches = list(ACTION_RE.finditer(text))
+    chunks = []
+    cursor = 0
+
+    for i, match in enumerate(matches):
+        action = int(match.group(1))
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        chunks.append(text[cursor:start])
+        chunks.append(patch_air_block(text[start:end], action, cfg))
+        cursor = end
+    chunks.append(text[cursor:])
+
+    patched = "".join(chunks)
+    out = patched.encode("utf-8")
+    if had_bom:
+        out = codecs.BOM_UTF8 + out
+    Path(path).write_bytes(out)
+    print(f"[air] patched {display_path(path)} from {cfg['_map_path'].relative_to(ROOT)}")
+
+
+def patch_air_block(block, action, cfg):
+    mapping = cfg["actions"].get(str(action))
+    if mapping is None:
+        return block
+    sprite_spec = cfg["sprites"][mapping["sprite"]]
+    group = int(sprite_spec["group"])
+    frames = list(mapping["frames"])
+    preserve_blank = bool(cfg.get("preserve_blank_sprite_lines", True))
+    replaced = 0
+    out_lines = []
+
+    for line in block.splitlines(keepends=True):
+        body = line.rstrip("\r\n")
+        newline = line[len(body) :]
+        match = SPRITE_LINE_RE.match(body)
+        if not match:
+            out_lines.append(line)
+            continue
+        old_group = int(match.group(2))
+        if old_group == -1 and preserve_blank:
+            out_lines.append(line)
+            continue
+        frame = frames[replaced % len(frames)]
+        replaced += 1
+        indent = match.group(1)
+        x_offset = match.group(4)
+        y_offset = match.group(5)
+        duration = match.group(6)
+        flags = match.group(7)
+        out_lines.append(f"{indent}{group},{frame}, {x_offset},{y_offset}, {duration}{flags}{newline}")
+    return "".join(out_lines)
+
+
+def validate_air_uses_variant_groups(cfg=None, path=CHAR_AIR):
+    cfg = cfg or load_action_map()
+    mapped_actions = {int(action) for action in cfg["actions"]}
+    preserve_actions = {int(action) for action in cfg.get("preserve_actions", [])}
+    variant_groups = {int(spec["group"]) for spec in cfg["sprites"].values()}
+    skin_groups = all_skin_sprite_groups()
+    variant = cfg["_variant"]
+    raw = Path(path).read_bytes()
+    text = raw.decode("utf-8-sig")
+    bad = []
+    preserved_bad = []
+    for match in ACTION_RE.finditer(text):
+        action = int(match.group(1))
+        next_match = ACTION_RE.search(text, match.end())
+        body = text[match.end() : next_match.start() if next_match else len(text)]
+        if action not in mapped_actions and action not in preserve_actions:
+            continue
+        for line in body.splitlines():
+            sprite = SPRITE_LINE_RE.match(line)
+            if not sprite:
+                continue
+            group = int(sprite.group(2))
+            if action in mapped_actions and group != -1 and group not in variant_groups:
+                bad.append((action, line.strip()))
+            if action in preserve_actions and group in skin_groups:
+                preserved_bad.append((action, line.strip()))
+    if bad:
+        preview = ", ".join(f"{a}: {line}" for a, line in bad[:12])
+        raise ValueError(f"AIR still references non-{variant} sprites: {preview}")
+    if preserved_bad:
+        preview = ", ".join(f"{a}: {line}" for a, line in preserved_bad[:12])
+        raise ValueError(f"AIR preserved actions still reference skin sprites: {preview}")
+    print(
+        f"[validate] AIR mapped sprite refs use {variant} groups "
+        f"{min(variant_groups)}..{max(variant_groups)}"
+    )
+
+
+def validate_sff_contains_variant_groups(cfg=None, path=CHAR_SFF):
+    cfg = cfg or load_action_map()
+    variant_groups = {int(spec["group"]) for spec in cfg["sprites"].values()}
+    variant = cfg["_variant"]
+    sprites, _ = read_sff_v2(path)
+    packed_groups = {int(sprite["group"]) for sprite in sprites}
+    missing = sorted(variant_groups - packed_groups)
+    if missing:
+        preview = ", ".join(str(group) for group in missing[:12])
+        raise ValueError(
+            f"{display_path(path)} is missing {variant} sprite group(s): "
+            f"{preview}; run build_assets.py char {variant} first"
+        )
+    print(
+        f"[validate] SFF contains {variant} groups "
+        f"{min(variant_groups)}..{max(variant_groups)}"
+    )
+
 
 def image_sprite(group, number, img, ax=0, ay=0):
     buf = io.BytesIO()
@@ -133,108 +454,111 @@ def image_sprite(group, number, img, ax=0, ay=0):
     return png_sprite(group, number, buf.getvalue(), img.width, img.height, ax, ay)
 
 # ---------------------------------------------------------------- build steps
-def build_character(scale=4):
+def validate_air_variant_in_temp(cfg=None):
+    cfg = cfg or load_action_map()
+    variant = cfg["_variant"]
+    with tempfile.TemporaryDirectory(prefix=f"greptile-{variant}-") as tmp:
+        tmp = Path(tmp)
+        tmp_sff = tmp / "greptile.sff"
+        tmp_air = tmp / "greptile.air"
+        tmp_air.write_bytes(CHAR_AIR.read_bytes())
+        build_character(variant, dst=tmp_sff)
+        validate_sff_contains_variant_groups(cfg, tmp_sff)
+        patch_air_for_variant(cfg, tmp_air)
+        validate_air_uses_variant_groups(cfg, tmp_air)
+
+
+def build_character(variant=DEFAULT_VARIANT, dst=CHAR_SFF):
+    """Build greptile.sff using the selected complete sprite set."""
+    cfg = load_action_map(variant)
+    frame_counts = validate_character_assets(cfg)
     src = ROOT / "extracted/chars/kfm/kfm.sff"
-    dst = ROOT / "extracted/chars/greptile/greptile.sff"
+    dst = Path(dst)
     sprites, palettes = read_sff_v2(src)
     n_kfm = len(sprites)
-    used_groups = {s["group"] for s in sprites}
-    idle_grp = max(used_groups) + 100         # safely past any KFM group
-    walk_grp = idle_grp + 1
+    frame_size = int(cfg["frame_size"])
+    scale = int(cfg["scale"])
+    axis_mode = cfg.get("axis", "bottom-center")
 
-    idle_frames, iw, ih = slice_sheet(ART / "Idle_Spritesheet.png", 24, 24, scale)
-    walk_frames, ww, wh = slice_sheet(ART / "Walking_Spritesheet.png", 24, 24, scale)
-    ax, ay = iw // 2, ih                      # axis: bottom-center -> stands on floor
-
-    for i, png in enumerate(idle_frames):
-        sprites.append(png_sprite(idle_grp, i, png, iw, ih, ax, ay))
-    for i, png in enumerate(walk_frames):
-        sprites.append(png_sprite(walk_grp, i, png, ww, wh, ww // 2, wh))
+    for sprite_name, spec in cfg["sprites"].items():
+        group = int(spec["group"])
+        path = cfg["_source_dir_abs"] / spec["sheet"]
+        frames, w, h = slice_fixed_sheet(path, frame_size, scale, axis_mode)
+        for i, (png, ax, ay) in enumerate(frames):
+            sprites.append(png_sprite(group, i, png, w, h, ax, ay))
 
     write_sff_v2(dst, sprites, palettes)
-    print(f"[char] {dst.relative_to(ROOT)}: kept {n_kfm} KFM sprites + "
-          f"{len(idle_frames)} idle + {len(walk_frames)} walk")
-    print(f"[char] idle group={idle_grp} (0..{len(idle_frames)-1}), "
-          f"walk group={walk_grp} (0..{len(walk_frames)-1}), "
-          f"frame={iw}x{ih}, axis=({ax},{ay})")
-    return idle_grp, walk_grp, len(idle_frames), len(walk_frames), iw, ih
+    added = sum(frame_counts.values())
+    print(
+        f"[char] {display_path(dst)}: kept {n_kfm} KFM sprites + "
+        f"{added} {variant} frames across {len(cfg['sprites'])} groups; "
+        f"frame={frame_size * scale}x{frame_size * scale}, axis={axis_mode}"
+    )
+
 
 def build_stage(scale=1.2):
-    """Overfill the screen so camera panning never exposes an edge, and put the
-    sprite axis at center so start=0 centers it (matching the engine's stage
-    convention, e.g. stage0-720.sff: 3200px wide, axis at horizontal center)."""
+    """Build the Greptile city stage SFF from Screen.png."""
     dst = ROOT / "extracted/stages/greptile_city.sff"
     img = Image.open(ART / "Screen.png").convert("RGBA")
     if scale != 1:
         img = img.resize((round(img.width * scale), round(img.height * scale)), Image.NEAREST)
-    buf = io.BytesIO(); img.save(buf, format="PNG")
-    ax, ay = img.width // 2, img.height // 2          # centered axis
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    ax, ay = img.width // 2, img.height // 2
     spr = png_sprite(0, 0, buf.getvalue(), img.width, img.height, ax, ay)
     write_sff_v2(dst, [spr], [])
-    print(f"[stage] {dst.relative_to(ROOT)}: {img.width}x{img.height} background, "
-          f"axis=({ax},{ay})")
-    return img.width, img.height
+    print(
+        f"[stage] {dst.relative_to(ROOT)}: {img.width}x{img.height} background, "
+        f"axis=({ax},{ay})"
+    )
 
-def build_start_screen():
-    """Pack the startup screen background and UI layers into the active motif."""
-    dst = ROOT / "extracted/data/ikemen1/komodo_start.sff"
-    bg = Image.open(ART / "Screen.png").convert("RGBA")
-    bg = bg.resize((1280, 720), Image.NEAREST)
-    sprites = [image_sprite(1000, 0, bg)]
 
-    for number, name in [
-        (1, "title.png"),
-        (2, "dino.png"),
-        (3, "bug.png"),
-        (4, "play-button.png"),
-    ]:
-        img = Image.open(START_UI / name).convert("RGBA")
-        sprites.append(image_sprite(1000, number, img))
+def command_variant(argv, index=2):
+    return argv[index] if len(argv) > index else DEFAULT_VARIANT
 
-    write_sff_v2(dst, sprites, [])
-    print(f"[start] {dst.relative_to(ROOT)}: packed city bg + "
-          "title/dino/bug/play button")
 
-def build_vs_screen():
-    """Pack the game-start / VS gate artwork into the active motif."""
-    dst = ROOT / "extracted/data/ikemen1/komodo_vs.sff"
+def main(argv):
+    what = argv[1] if len(argv) > 1 else "all"
+    known_variants = {p.parent.name for p in CHARACTER_ASSETS.glob("*/action-map.json")}
 
-    bg = Image.new("RGBA", (1280, 720), (126, 147, 255, 255))
-    city = Image.open(VS_UI / "city.png").convert("RGBA")
-    bg.alpha_composite(city, (0, 20))
-    grid = Image.open(VS_UI / "grid.png").convert("RGBA")
-    bg.alpha_composite(grid, (1, 0))
+    if what in ("all", "char"):
+        variant = command_variant(argv)
+        build_character(variant)
+        cfg = load_action_map(variant)
+        patch_air_for_variant(cfg)
+        validate_air_uses_variant_groups(cfg)
+    elif what == "air":
+        variant = command_variant(argv)
+        cfg = load_action_map(variant)
+        validate_sff_contains_variant_groups(cfg)
+        patch_air_for_variant(cfg)
+        validate_air_uses_variant_groups(cfg)
+    elif what == "stage":
+        build_stage()
+    elif what == "validate":
+        variant = command_variant(argv)
+        cfg = load_action_map(variant)
+        validate_character_assets(cfg)
+    elif what in ("validate-air", "air-validate"):
+        variant = command_variant(argv)
+        cfg = load_action_map(variant)
+        validate_air_variant_in_temp(cfg)
+    elif what in known_variants:
+        variant = what
+        build_character(variant)
+        cfg = load_action_map(variant)
+        patch_air_for_variant(cfg)
+        validate_air_uses_variant_groups(cfg)
+    else:
+        variants = "|".join(sorted(known_variants))
+        raise SystemExit(
+            "usage: build_assets.py [all|char|air|stage|validate|validate-air] "
+            f"[variant]  # variants: {variants}"
+        )
 
-    sprites = [image_sprite(1100, 0, bg)]
-    for number, name in [
-        (1, "dino-portrait.png"),
-        (2, "bug-portrait.png"),
-        (3, "vs-text.png"),
-        (4, "start-button.png"),
-        (5, "sparkle-plus-tall.png"),
-        (6, "sparkle-circle-large.png"),
-        (7, "sparkle-diamond-small.png"),
-        (8, "sparkle-plus-small.png"),
-        (9, "sparkle-circle-big.png"),
-        (10, "sparkle-circle-large-2.png"),
-        (11, "sparkle-plus-big.png"),
-        (12, "sparkle-plus-big-yellow.png"),
-        (13, "sparkle-diamond-small-yellow.png"),
-    ]:
-        img = Image.open(VS_UI / name).convert("RGBA")
-        sprites.append(image_sprite(1100, number, img))
+    if what == "all":
+        build_stage()
 
-    write_sff_v2(dst, sprites, [])
-    print(f"[vs] {dst.relative_to(ROOT)}: packed background + "
-          "portraits/VS/start/decorations")
 
 if __name__ == "__main__":
-    what = sys.argv[1] if len(sys.argv) > 1 else "all"
-    if what in ("all", "char"):
-        build_character()
-    if what in ("all", "stage"):
-        build_stage()
-    if what in ("all", "start"):
-        build_start_screen()
-    if what in ("all", "vs"):
-        build_vs_screen()
+    main(sys.argv)
