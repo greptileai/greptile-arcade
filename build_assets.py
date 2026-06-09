@@ -448,6 +448,11 @@ def validate_sff_contains_variant_groups(cfg=None, path=CHAR_SFF):
     )
 
 
+def image_sprite(group, number, img, ax=0, ay=0):
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return png_sprite(group, number, buf.getvalue(), img.width, img.height, ax, ay)
+
 # ---------------------------------------------------------------- build steps
 def validate_air_variant_in_temp(cfg=None):
     cfg = cfg or load_action_map()
