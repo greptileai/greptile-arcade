@@ -1069,6 +1069,39 @@ def build_vs_screen(dst=KOMODO_VS_SFF):
     print(f"[vs] {display_path(dst)}: packed {len(sprites)} VS screen sprites")
 
 
+FIGHT_TEXT_PNG = "fight-text.png"
+
+
+def fight_text_sprites(filename=FIGHT_TEXT_PNG):
+    """Slice one FIGHT image into the 4 corner-assembling quadrants used by the
+    round-start "FIGHT" callout (anims 520-523).
+
+    The resting pieces are groups 510,0-3 and the fly-in copies are 511,0-3
+    (identical pixels). Each quadrant's axis is the shared center point so all
+    four reassemble seamlessly when drawn at fight.offset. Quadrant->number
+    mapping matches the fly-in directions: 0=top-left, 1=top-right,
+    2=bottom-left, 3=bottom-right.
+    """
+    path = ART / "ui/hud" / filename
+    if not path.exists():
+        return []
+    img = Image.open(path).convert("RGBA")
+    w, h = img.size
+    cx, cy = w // 2, h // 2
+    quads = [
+        (0, (0, 0, cx, cy), (cx, cy)),   # top-left
+        (1, (cx, 0, w, cy), (0, cy)),    # top-right
+        (2, (0, cy, cx, h), (cx, 0)),    # bottom-left
+        (3, (cx, cy, w, h), (0, 0)),     # bottom-right
+    ]
+    sprites = []
+    for number, box, (ax, ay) in quads:
+        tile = img.crop(box)
+        sprites.append(image_sprite(510, number, tile, ax, ay))  # resting
+        sprites.append(image_sprite(511, number, tile, ax, ay))  # fly-in
+    return sprites
+
+
 def build_hud(dst=FIGHT_SFF):
     """Pack custom fight HUD art into fight.sff."""
     sprites, palettes = read_sff_v2(dst)
@@ -1086,8 +1119,12 @@ def build_hud(dst=FIGHT_SFF):
     for group, number, filename, size, ax, ay in replacements:
         img = load_hud_png(filename, size)
         replace_sprite(sprites, image_sprite(group, number, img, ax, ay))
+    fight_text = fight_text_sprites()
+    for sprite in fight_text:
+        replace_sprite(sprites, sprite)
     write_sff_v2(dst, sprites, palettes)
-    print(f"[hud] {display_path(dst)}: packed {len(replacements)} HUD sprites")
+    note = f" + FIGHT text ({len(fight_text)} tiles)" if fight_text else ""
+    print(f"[hud] {display_path(dst)}: packed {len(replacements)} HUD sprites{note}")
 
 
 def build_winner_screen(dst=KOMODO_WINNER_SFF):
