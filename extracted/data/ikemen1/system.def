@@ -1995,8 +1995,8 @@ fadeout.time = 15
 skip.key = a
 cancel.key = b, c, x, y, z, s
 overlay.alpha = 0,256
-;Winner pose. Action 9400 is generated in each mascot AIR from sprite 9000,3.
-p1.anim = 9400
+;Winner pose. Sprite 9000,3 is packed into each mascot SFF.
+p1.anim = -1
 p1.offset = 20, 228
 p1.spr = 9000,3
 p1.layerno = 2
@@ -2004,6 +2004,15 @@ p1.facing = 1
 p1.scale = 1,1
 p1.window = 0,0, 1279,719
 p1.localcoord = 1280,720
+p1.num = 1
+p1.spacing = 0,0
+p1.padding = 0
+p1.velocity = 0,0
+p1.maxdist = 0,0
+p1.accel = 0,0
+p1.friction = 1,1
+p1.pos = 0,0
+p1.draworder = 3
 p1.name.offset = 0,0
 p1.name.font = -1,0,0
 p1.name.layerno = 2
