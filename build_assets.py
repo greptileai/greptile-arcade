@@ -1221,10 +1221,19 @@ def build_character(variant=DEFAULT_VARIANT, dst=None):
     )
 
 
-def build_stage(scale=1.2):
-    """Build the Greptile city stage SFF from Screen.png."""
+def build_stage(source="Screen-2x.jpg", overfill=1.2):
+    """Build the Greptile city stage SFF from the city background image.
+
+    Ensures the result overfills the 1920x1080 stage space by at least
+    `overfill` (min width 2304) so camera panning never exposes black edges and
+    the .def positioning stays valid. A source already larger than the overfill
+    minimum (e.g. a 2x 2560x1440 image) is kept at full resolution; only smaller
+    sources are upscaled.
+    """
     dst = ROOT / "extracted/stages/greptile_city.sff"
-    img = Image.open(ART / "Screen.png").convert("RGBA")
+    img = Image.open(ART / source).convert("RGBA")
+    min_w = round(1920 * overfill)
+    scale = max(1.0, min_w / img.width)
     if scale != 1:
         img = img.resize((round(img.width * scale), round(img.height * scale)), Image.NEAREST)
     buf = io.BytesIO()
