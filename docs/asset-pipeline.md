@@ -34,6 +34,7 @@ python3 -m venv .venv
 .venv/bin/python build_assets.py screens
 .venv/bin/python build_assets.py validate lizard
 .venv/bin/python build_assets.py validate-air lizard
+.venv/bin/python build_assets.py validate-screenpack
 ```
 
 Output:
@@ -123,6 +124,17 @@ not custom Python blocks:
 `char <variant>` also verifies that the patched AIR sprite refs use only the
 selected variant's groups. To check that explicitly, run
 `.venv/bin/python build_assets.py validate-air <variant>`.
+
+Before packaging a build, also run
+`.venv/bin/python build_assets.py validate-screenpack`. This checks the final
+screenpack files for the cabinet-specific winner flow:
+
+- The post-match victory page draws each character's packed `9000,3` winner
+  sprite visibly on screen after Ikemen's portrait scaling is applied.
+- P1 round results route to the lizard banner and P2 results route to the bug
+  banner.
+- `ai.win` / `ai.lose` overrides are absent, so AI smoke tests cannot bypass
+  the side-specific result banners.
 
 ## Lifebar / health-bar art spec
 

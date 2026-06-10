@@ -39,6 +39,8 @@ DEFAULT_VARIANT = "lizard"
 CHAR_AIR = ROOT / "extracted/chars/greptile/greptile.air"
 CHAR_SFF = ROOT / "extracted/chars/greptile/greptile.sff"
 FIGHT_SFF = ROOT / "extracted/data/fight.sff"
+FIGHT_DEF = ROOT / "extracted/data/fight.def"
+SYSTEM_DEF = ROOT / "extracted/data/ikemen1/system.def"
 KOMODO_START_SFF = ROOT / "extracted/data/ikemen1/komodo_start.sff"
 KOMODO_VS_SFF = ROOT / "extracted/data/ikemen1/komodo_vs.sff"
 KOMODO_WINNER_SFF = ROOT / "extracted/data/ikemen1/komodo_winner.sff"
@@ -111,6 +113,75 @@ def display_path(path):
 def repo_asset_path(path):
     path = Path(path)
     return path if path.is_absolute() else ROOT / path
+
+
+def strip_inline_comment(line):
+    return line.split(";", 1)[0].strip()
+
+
+def parse_def_sections(path):
+    sections = {}
+    current = None
+    for raw in Path(path).read_text(encoding="utf-8-sig").splitlines():
+        line = strip_inline_comment(raw)
+        if not line:
+            continue
+        if line.startswith("[") and "]" in line:
+            current = line[1 : line.index("]")].strip().lower()
+            sections.setdefault(current, {})
+            continue
+        if current is None or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        sections[current][key.strip().lower()] = value.strip()
+    return sections
+
+
+def parse_num_pair(value, cast=float):
+    parts = [part.strip() for part in value.split(",")]
+    if len(parts) != 2:
+        raise ValueError(f"expected two comma-separated values, got {value!r}")
+    return cast(parts[0]), cast(parts[1])
+
+
+def parse_int_quad(value):
+    parts = [part.strip() for part in value.split(",")]
+    if len(parts) != 4:
+        raise ValueError(f"expected four comma-separated values, got {value!r}")
+    return tuple(int(part) for part in parts)
+
+
+def section_value(sections, section, key, default=None):
+    return sections.get(section.lower(), {}).get(key.lower(), default)
+
+
+def sff_sprite(path, group, number):
+    sprites, _ = read_sff_v2(path)
+    for sprite in sprites:
+        if sprite["group"] == group and sprite["number"] == number:
+            return sprite
+    raise ValueError(f"{display_path(path)} is missing sprite {group},{number}")
+
+
+def sff_sprite_image(path, group, number):
+    sprite = sff_sprite(path, group, number)
+    payload = sprite["payload"]
+    if not payload:
+        raise ValueError(f"{display_path(path)} sprite {group},{number} has no payload")
+    png_len = struct.unpack_from("<I", payload, 0)[0]
+    png = payload[4 : 4 + png_len]
+    img = Image.open(io.BytesIO(png)).convert("RGBA")
+    if img.size != (sprite["w"], sprite["h"]):
+        raise ValueError(
+            f"{display_path(path)} sprite {group},{number}: header size "
+            f"{sprite['w']}x{sprite['h']} does not match PNG {img.size}"
+        )
+    return sprite, img
+
+
+def image_matches_source(img, source):
+    source = source.convert("RGBA")
+    return img.size == source.size and img.tobytes() == source.tobytes()
 
 
 # ---------------------------------------------------------------- SFF reading
@@ -575,6 +646,196 @@ def validate_sff_contains_variant_groups(cfg=None, path=None):
     )
 
 
+def alpha_bbox_area(bbox):
+    if bbox is None:
+        return 0
+    return max(0, bbox[2] - bbox[0]) * max(0, bbox[3] - bbox[1])
+
+
+def intersect_bbox(a, b):
+    return (
+        max(a[0], b[0]),
+        max(a[1], b[1]),
+        min(a[2], b[2]),
+        min(a[3], b[3]),
+    )
+
+
+def validate_victory_screen(system_def=SYSTEM_DEF):
+    """Guard the post-match winner portrait against invisible/off-screen sprites."""
+    sections = parse_def_sections(system_def)
+    info = sections.get("info", {})
+    victory = sections.get("victory screen", {})
+    if not info:
+        raise ValueError(f"{display_path(system_def)}: missing [Info] section")
+    if not victory:
+        raise ValueError(f"{display_path(system_def)}: missing [Victory Screen] section")
+
+    motif_localcoord = parse_num_pair(info.get("localcoord", "1280,720"), int)
+    p1_localcoord = parse_num_pair(victory.get("p1.localcoord", "0,0"), int)
+    p1_offset = parse_num_pair(victory.get("p1.offset", "0,0"), float)
+    p1_pos = parse_num_pair(victory.get("p1.pos", "0,0"), float)
+    p1_scale = parse_num_pair(victory.get("p1.scale", "1,1"), float)
+    p1_window = parse_int_quad(victory.get("p1.window", "0,0,1279,719"))
+
+    spr = parse_num_pair(victory.get("p1.spr", "-1,0"), int)
+    required = {
+        "enabled": "1",
+        "p1.anim": "-1",
+        "p1.num": "1",
+        "p1.layerno": "2",
+        "p1.applypal": "0",
+    }
+    bad = [
+        f"{key}={victory.get(key)} (expected {expected})"
+        for key, expected in required.items()
+        if victory.get(key) != expected
+    ]
+    if bad:
+        raise ValueError("[Victory Screen] winner portrait misconfigured: " + "; ".join(bad))
+    if spr != (9000, 3):
+        raise ValueError(f"[Victory Screen] p1.spr must be 9000,3, got {spr}")
+    if p1_localcoord != motif_localcoord:
+        raise ValueError(
+            "[Victory Screen] p1.localcoord must match motif localcoord "
+            f"{motif_localcoord}, got {p1_localcoord}"
+        )
+
+    bg_layer_violations = []
+    for section, values in sections.items():
+        if not section.startswith("victorybg "):
+            continue
+        layer = int(values.get("layerno", "0"))
+        if layer >= 2:
+            bg_layer_violations.append(f"[{section}] layerno={layer}")
+    if bg_layer_violations:
+        raise ValueError(
+            "VictoryBG layer 2+ can cover the winner portrait: "
+            + ", ".join(bg_layer_violations)
+        )
+
+    screen_bbox = (0.0, 0.0, float(motif_localcoord[0]), float(motif_localcoord[1]))
+    window_bbox = tuple(float(v) for v in p1_window)
+    clip_bbox = intersect_bbox(screen_bbox, window_bbox)
+    visible = []
+    for name, target in CHARACTER_TARGETS.items():
+        char_def = target["dir"] / f"{name}.def"
+        char_sections = parse_def_sections(char_def)
+        char_localcoord = parse_num_pair(
+            section_value(char_sections, "Info", "localcoord", "320,240"),
+            int,
+        )
+        engine_scale = motif_localcoord[0] / char_localcoord[0]
+        effective_scale = (p1_scale[0] * engine_scale, p1_scale[1] * engine_scale)
+        sprite, img = sff_sprite_image(target["sff"], 9000, 3)
+        alpha_bbox = img.getchannel("A").getbbox()
+        if alpha_bbox is None:
+            raise ValueError(f"{display_path(target['sff'])} sprite 9000,3 is fully transparent")
+        x = p1_pos[0] + p1_offset[0]
+        y = p1_pos[1] + p1_offset[1]
+        placed = (
+            x + (alpha_bbox[0] - sprite["ax"]) * effective_scale[0],
+            y + (alpha_bbox[1] - sprite["ay"]) * effective_scale[1],
+            x + (alpha_bbox[2] - sprite["ax"]) * effective_scale[0],
+            y + (alpha_bbox[3] - sprite["ay"]) * effective_scale[1],
+        )
+        clipped = intersect_bbox(placed, clip_bbox)
+        total_area = alpha_bbox_area(placed)
+        visible_area = alpha_bbox_area(clipped)
+        visible_fraction = visible_area / total_area if total_area else 0
+        if visible_fraction < 0.95:
+            raise ValueError(
+                f"{name} winner sprite would be clipped/off-screen: "
+                f"placed={tuple(round(v, 1) for v in placed)}, "
+                f"visible={visible_fraction:.1%}, effective_scale={effective_scale}"
+            )
+        if not (0.15 <= effective_scale[0] <= 2.0 and 0.15 <= effective_scale[1] <= 2.0):
+            raise ValueError(
+                f"{name} winner sprite effective scale looks unsafe: {effective_scale}"
+            )
+        visible.append(
+            f"{name} 9000,3 visible {visible_fraction:.0%} "
+            f"bbox={tuple(round(v) for v in placed)}"
+        )
+    print("[validate] victory screen winner portrait: " + "; ".join(visible))
+
+
+def action_sprite_refs(def_text, action):
+    matches = list(ACTION_RE.finditer(def_text))
+    for i, match in enumerate(matches):
+        if int(match.group(1)) != action:
+            continue
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(def_text)
+        body = def_text[match.end() : end]
+        refs = []
+        for line in body.splitlines():
+            sprite = SPRITE_LINE_RE.match(strip_inline_comment(line))
+            if sprite:
+                refs.append((int(sprite.group(2)), int(sprite.group(3))))
+        return refs
+    raise ValueError(f"missing [Begin Action {action}] in fight.def")
+
+
+def validate_result_banners(fight_def=FIGHT_DEF, fight_sff=FIGHT_SFF):
+    """Ensure round-end text cannot route a lizard win to the bug banner."""
+    sections = parse_def_sections(fight_def)
+    round_section = sections.get("round", {})
+    if not round_section:
+        raise ValueError(f"{display_path(fight_def)}: missing [Round] section")
+
+    ai_keys = sorted(
+        key
+        for key in round_section
+        if re.match(r"ai\.(?:win|lose)\d*\.", key)
+    )
+    if ai_keys:
+        raise ValueError(
+            "AI-specific win banners bypass side-specific lizard/bug art: "
+            + ", ".join(ai_keys[:12])
+        )
+
+    for suffix in ("", "2", "3", "4"):
+        p1_key = f"p1.win{suffix}.bg1.anim"
+        p2_key = f"p2.win{suffix}.bg1.anim"
+        if round_section.get(p1_key) != "582":
+            raise ValueError(f"{p1_key} must use lizard action 582")
+        if round_section.get(p2_key) != "583":
+            raise ValueError(f"{p2_key} must use bug action 583")
+
+    text = Path(fight_def).read_text(encoding="utf-8-sig")
+    expected_refs = {582: {(530, 1)}, 583: {(530, 2)}}
+    for action, expected in expected_refs.items():
+        refs = {ref for ref in action_sprite_refs(text, action) if ref[0] != -1}
+        if refs != expected:
+            raise ValueError(
+                f"action {action} must reference only {sorted(expected)}, got {sorted(refs)}"
+            )
+
+    packed_expectations = [
+        (530, 1, "result-lizard-wins.png", (707, 102), (353, 51)),
+        (530, 2, "result-bug-wins.png", (646, 102), (323, 51)),
+    ]
+    for group, number, filename, size, axis in packed_expectations:
+        sprite, img = sff_sprite_image(fight_sff, group, number)
+        if img.size != size or (sprite["ax"], sprite["ay"]) != axis:
+            raise ValueError(
+                f"{display_path(fight_sff)} sprite {group},{number}: "
+                f"expected size={size} axis={axis}, got size={img.size} "
+                f"axis={(sprite['ax'], sprite['ay'])}"
+            )
+        source = load_hud_png(filename, size)
+        if not image_matches_source(img, source):
+            raise ValueError(
+                f"{display_path(fight_sff)} sprite {group},{number} does not match {filename}"
+            )
+    print("[validate] result banners: P1 uses lizard art, P2 uses bug art, AI overrides disabled")
+
+
+def validate_screenpack():
+    validate_victory_screen()
+    validate_result_banners()
+
+
 def image_sprite(group, number, img, ax=0, ay=0):
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -957,6 +1218,7 @@ def main(argv):
         build_stage()
         build_hud()
         build_screenpack_screens()
+        validate_screenpack()
     elif what == "char":
         variant = command_variant(argv)
         build_character(variant)
@@ -973,14 +1235,19 @@ def main(argv):
         build_stage()
     elif what in ("hud", "fight"):
         build_hud()
+        validate_result_banners()
     elif what == "start":
         build_start_screen()
     elif what == "vs":
         build_vs_screen()
     elif what == "winner":
         build_winner_screen()
+        validate_victory_screen()
     elif what == "screens":
         build_screenpack_screens()
+        validate_screenpack()
+    elif what in ("validate-screenpack", "screenpack-validate"):
+        validate_screenpack()
     elif what == "validate":
         variant = command_variant(argv)
         cfg = load_action_map(variant)
@@ -998,7 +1265,7 @@ def main(argv):
     else:
         variants = "|".join(sorted(known_variants))
         raise SystemExit(
-            "usage: build_assets.py [all|char|air|stage|hud|fight|start|vs|winner|screens|validate|validate-air] "
+            "usage: build_assets.py [all|char|air|stage|hud|fight|start|vs|winner|screens|validate|validate-air|validate-screenpack] "
             f"[variant]  # variants: {variants}"
         )
 

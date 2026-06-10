@@ -156,6 +156,15 @@ AllowDebugKeys      = 0
 
 ## Command-Line Smoke Test
 
+Before copying files to Windows, run the local screenpack guard on this machine:
+
+```bash
+.venv/bin/python build_assets.py validate-screenpack
+```
+
+This must pass before packaging. It catches winner-screen portrait clipping and
+round-result banner routing regressions.
+
 Open Command Prompt:
 
 ```bat
@@ -391,4 +400,3 @@ Send back:
   `Ikemen_GO.exe` from the official Windows ZIP.
 - The base KFM assets are licensed CC BY-NC, so keep `LICENSES.txt` with the
   package.
-

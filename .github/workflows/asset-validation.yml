@@ -1,0 +1,30 @@
+name: Asset validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install asset tooling dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate character AIR wiring
+        run: |
+          python build_assets.py validate-air lizard
+          python build_assets.py validate-air bug
+
+      - name: Validate screenpack winner and result routing
+        run: python build_assets.py validate-screenpack
