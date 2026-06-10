@@ -1102,6 +1102,51 @@ def fight_text_sprites(filename=FIGHT_TEXT_PNG):
     return sprites
 
 
+KO_TEXT_PNG = "ko.png"
+# fight.def [Round] draws the KO halves at these fixed bg offsets; we center the
+# reassembled image on screen-x KO_CENTER_X.
+KO_LEFT_OFFSET_X = 430
+KO_RIGHT_OFFSET_X = 830
+KO_CENTER_X = 640
+
+
+def ko_text_sprites(filename=KO_TEXT_PNG):
+    """Slice one K.O. image into the left/right halves used by the round-end KO
+    callout (anims 530/531).
+
+    The callout layers two sprite groups: 520 (solid letters) and 522 (the
+    additive glow flash, drawn scaled 1.25). Each is split at center into ,0
+    (left, shown at bg offset 430) and ,1 (right, shown at 830). The axes are
+    chosen so the two halves reassemble into the original image centered on
+    screen at KO_CENTER_X, so no fight.def/animation changes are needed.
+    """
+    path = ART / "ui/hud" / filename
+    if not path.exists():
+        return []
+    img = Image.open(path).convert("RGBA")
+    w, h = img.size
+    cx = w // 2
+    ay = h // 2
+    left = img.crop((0, 0, cx, h))
+    right = img.crop((cx, 0, w, h))
+    # left half: screen-left edge = KO_CENTER_X - w/2, drawn at KO_LEFT_OFFSET_X
+    left_ax = KO_LEFT_OFFSET_X - KO_CENTER_X + cx
+    # right half: screen-left edge = KO_CENTER_X, drawn at KO_RIGHT_OFFSET_X
+    right_ax = KO_RIGHT_OFFSET_X - KO_CENTER_X
+    sprites = []
+    for group in (520, 522):  # solid letters + additive glow share the art
+        sprites.append(image_sprite(group, 0, left, left_ax, ay))
+        sprites.append(image_sprite(group, 1, right, right_ax, ay))
+    # Group 521 is the original black drop shadow (anims 532/533). The custom
+    # art carries its own shadow, so blank 521 with transparent tiles to drop
+    # the stale shadow behind the new letters.
+    blank_left = Image.new("RGBA", left.size, (0, 0, 0, 0))
+    blank_right = Image.new("RGBA", right.size, (0, 0, 0, 0))
+    sprites.append(image_sprite(521, 0, blank_left, left_ax, ay))
+    sprites.append(image_sprite(521, 1, blank_right, right_ax, ay))
+    return sprites
+
+
 def build_hud(dst=FIGHT_SFF):
     """Pack custom fight HUD art into fight.sff."""
     sprites, palettes = read_sff_v2(dst)
@@ -1122,8 +1167,16 @@ def build_hud(dst=FIGHT_SFF):
     fight_text = fight_text_sprites()
     for sprite in fight_text:
         replace_sprite(sprites, sprite)
+    ko_text = ko_text_sprites()
+    for sprite in ko_text:
+        replace_sprite(sprites, sprite)
     write_sff_v2(dst, sprites, palettes)
-    note = f" + FIGHT text ({len(fight_text)} tiles)" if fight_text else ""
+    extras = []
+    if fight_text:
+        extras.append(f"FIGHT text ({len(fight_text)} tiles)")
+    if ko_text:
+        extras.append(f"KO text ({len(ko_text)} tiles)")
+    note = (" + " + " + ".join(extras)) if extras else ""
     print(f"[hud] {display_path(dst)}: packed {len(replacements)} HUD sprites{note}")
 
 
