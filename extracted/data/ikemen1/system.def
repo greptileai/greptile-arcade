@@ -1996,12 +1996,14 @@ skip.key = a
 cancel.key = b, c, x, y, z, s
 overlay.alpha = 0,256
 ;Winner pose. Sprite 9000,3 is packed into each mascot SFF.
+;Victory portraits are auto-scaled from char localcoord 320x240 to motif
+;localcoord 1280x720, so 0.25 cancels that 4x multiplier.
 p1.anim = -1
 p1.offset = 20, 228
 p1.spr = 9000,3
 p1.layerno = 2
 p1.facing = 1
-p1.scale = 1,1
+p1.scale = 0.25,0.25
 p1.window = 0,0, 1279,719
 p1.localcoord = 1280,720
 p1.num = 1

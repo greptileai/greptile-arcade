@@ -3098,63 +3098,10 @@ p2.win4.text =
 p2.win4.displaytime = 180
 p2.win4.snd     = 2,3
 
-; AI Win
-ai.win.displaytime = 170
-ai.win.offset = 640, 610
-ai.win.font = 4,0
-ai.win.scale = 1, 1
-ai.win.anim = 583
-ai.win.snd     = 2,4
-
-ai.win2.displaytime = 170
-ai.win2.offset = 640, 610
-ai.win2.font = 4,0
-ai.win2.scale = 1, 1
-ai.win2.anim = 583
-ai.win2.snd     = 2,4
-
-ai.win3.displaytime = 170
-ai.win3.offset = 640, 610
-ai.win3.font = 4,0
-ai.win3.scale = 1, 1
-ai.win3.anim = 583
-ai.win3.snd     = 2,4
-
-ai.win4.displaytime = 170
-ai.win4.offset = 640, 610
-ai.win4.font = 4,0
-ai.win4.scale = 1, 1
-ai.win4.anim = 583
-ai.win4.snd     = 2,4
-
-; AI Lose
-ai.lose.displaytime = 170
-ai.lose.offset = 640, 610
-ai.lose.font = 4,0
-ai.lose.scale = 1, 1
-ai.lose.anim = 582
-ai.lose.snd     = 2,3
-
-ai.lose2.displaytime = 170
-ai.lose2.offset = 640, 610
-ai.lose2.font = 4,0
-ai.lose2.scale = 1, 1
-ai.lose2.anim = 582
-ai.lose2.snd     = 2,3
-
-ai.lose3.displaytime = 170
-ai.lose3.offset = 640, 610
-ai.lose3.font = 4,0
-ai.lose3.scale = 1, 1
-ai.lose3.anim = 582
-ai.lose3.snd     = 2,3
-
-ai.lose4.displaytime = 170
-ai.lose4.offset = 640, 610
-ai.lose4.font = 4,0
-ai.lose4.scale = 1, 1
-ai.lose4.anim = 582
-ai.lose4.snd     = 2,3
+; AI-specific win/lose announcements are intentionally omitted. The fixed
+; roster uses side-specific result art: P1 is lizard, P2 is bug. If ai.win or
+; ai.lose is defined here, Ikemen bypasses p1.win/p2.win for human-vs-AI
+; matches and can show the wrong character-specific banner.
 
 ; Draw text
 draw.offset  = 640, 400
