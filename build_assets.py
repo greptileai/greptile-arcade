@@ -1160,6 +1160,9 @@ def build_hud(dst=FIGHT_SFF):
         (13, 3, "health-fill-flash.png", (435, 24), 435, 0),
         (530, 1, "result-lizard-wins.png", (707, 102), 353, 51),
         (530, 2, "result-bug-wins.png", (646, 102), 323, 51),
+        (40, 0, "powerbar-empty.png", (206, 18), 206, 0),
+        (41, 0, "powerbar-frame.png", (210, 22), 210, 0),
+        (43, 0, "powerbar-fill.png", (202, 14), 202, 0),
     ]
     for group, number, filename, size, ax, ay in replacements:
         img = load_hud_png(filename, size)
