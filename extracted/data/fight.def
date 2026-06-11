@@ -1620,51 +1620,51 @@ p1.frontMax.palfx.sinmul = 30, 30, 30, 10
 p1.counterMax.text = M
 p1.counterMax.offset = -241,27
 p1.counterMax.font = 4, 0, 0
-p1.counterMax.palfx.mul = 226, 226, 226
-p1.counterMax.palfx.sinmul = 30, 30, 30, 10
+p1.counterMax.palfx.mul = 256, 256, 256
+p1.counterMax.palfx.sinmul = 0, 0, 0, 0
 
 p1.counter10000.offset = -241,27
 p1.counter10000.font = 4, 0, 0
-p1.counter10000.palfx.mul = 226, 226, 226
-p1.counter10000.palfx.sinmul = 30, 30, 30, 10
+p1.counter10000.palfx.mul = 256, 256, 256
+p1.counter10000.palfx.sinmul = 0, 0, 0, 0
 
 p1.counter9000.offset = -241,27
 p1.counter9000.font = 4, 0, 0
-p1.counter9000.palfx.mul = 255, 32, 135
+p1.counter9000.palfx.mul = 256, 256, 256
 
 p1.counter8000.offset = -241,27
 p1.counter8000.font = 4, 0, 0
-p1.counter8000.palfx.mul = 200, 78, 240
+p1.counter8000.palfx.mul = 256, 256, 256
 
 p1.counter7000.offset = -241,27
 p1.counter7000.font = 4, 0, 0
-p1.counter7000.palfx.mul = 102, 250, 250
+p1.counter7000.palfx.mul = 256, 256, 256
 
 p1.counter6000.offset = -241,27
 p1.counter6000.font = 4, 0, 0
-p1.counter6000.palfx.mul = 0, 204, 153
+p1.counter6000.palfx.mul = 256, 256, 256
 
 p1.counter5000.offset = -241,27
 p1.counter5000.font = 4, 0, 0
-p1.counter5000.palfx.mul = 255, 153, 0
+p1.counter5000.palfx.mul = 256, 256, 256
 
 p1.counter4000.offset = -241,27
 p1.counter4000.font = 4, 0, 0
-p1.counter4000.palfx.mul = 102, 255, 51
+p1.counter4000.palfx.mul = 256, 256, 256
 
 p1.counter3000.offset = -241,27
 p1.counter3000.font = 4, 0, 0
-p1.counter3000.palfx.mul = 255, 70, 70
+p1.counter3000.palfx.mul = 256, 256, 256
 
 p1.counter2000.offset = -241,27
 p1.counter2000.font = 4, 0, 0
-p1.counter2000.palfx.mul = 255, 255, 51
+p1.counter2000.palfx.mul = 256, 256, 256
 
 p1.counter1000.offset = -241,27
 p1.counter1000.font = 4, 0, 0
-p1.counter1000.palfx.mul = 0, 153, 255
+p1.counter1000.palfx.mul = 256, 256, 256
 
-p1.counter.palfx.mul = 125, 125, 125
+p1.counter.palfx.mul = 256, 256, 256
 p1.counter.offset = -241,27
 p1.counter.font = 4, 0, 0
 p1.levelbars = 1             
@@ -1762,53 +1762,53 @@ p2.frontMax.facing = 1
 p2.counterMax.text = M
 p2.counterMax.offset = 241,27
 p2.counterMax.font = 4, 0, 0
-p2.counterMax.palfx.mul = 226, 226, 226
-p2.counterMax.palfx.sinmul = 30, 30, 30, 10
+p2.counterMax.palfx.mul = 256, 256, 256
+p2.counterMax.palfx.sinmul = 0, 0, 0, 0
 
 p2.counter10000.offset = 243,27
 p2.counter10000.font = 4, 0, 0
-p2.counter10000.palfx.mul = 226, 226, 226
-p2.counter10000.palfx.sinmul = 30, 30, 30, 10
+p2.counter10000.palfx.mul = 256, 256, 256
+p2.counter10000.palfx.sinmul = 0, 0, 0, 0
 
 p2.counter9000.offset = 243,27
 p2.counter9000.font = 4, 0, 0
-p2.counter9000.palfx.mul = 255, 32, 135
+p2.counter9000.palfx.mul = 256, 256, 256
 
 p2.counter8000.offset = 243,27
 p2.counter8000.font = 4, 0, 0
-p2.counter8000.palfx.mul = 200, 78, 240
+p2.counter8000.palfx.mul = 256, 256, 256
 
 p2.counter7000.offset = 243,27
 p2.counter7000.font = 4, 0, 0
-p2.counter7000.palfx.mul = 102, 250, 250
+p2.counter7000.palfx.mul = 256, 256, 256
 
 p2.counter6000.offset = 243,27
 p2.counter6000.font = 4, 0, 0
-p2.counter6000.palfx.mul = 0, 204, 153
+p2.counter6000.palfx.mul = 256, 256, 256
 
 p2.counter5000.offset = 243,27
 p2.counter5000.font = 4, 0, 0
-p2.counter5000.palfx.mul = 255, 153, 0
+p2.counter5000.palfx.mul = 256, 256, 256
 
 p2.counter4000.offset = 243,27
 p2.counter4000.font = 4, 0, 0
-p2.counter4000.palfx.mul = 102, 255, 51
+p2.counter4000.palfx.mul = 256, 256, 256
 
 p2.counter3000.offset = 243,27
 p2.counter3000.font = 4, 0, 0
-p2.counter3000.palfx.mul = 255, 70, 70
+p2.counter3000.palfx.mul = 256, 256, 256
 
 p2.counter2000.offset = 243,27
 p2.counter2000.font = 4, 0, 0
-p2.counter2000.palfx.mul = 255, 255, 51
+p2.counter2000.palfx.mul = 256, 256, 256
 
 p2.counter1000.offset = 243,27
 p2.counter1000.font = 4, 0, 0
-p2.counter1000.palfx.mul = 0, 153, 255
+p2.counter1000.palfx.mul = 256, 256, 256
 
 p2.counter.offset = 243,27
 p2.counter.font = 4, 0, 0
-p2.counter.palfx.mul = 125, 125, 125
+p2.counter.palfx.mul = 256, 256, 256
 p2.levelbars = 1             
 
 ; --level sounds---
@@ -2665,22 +2665,22 @@ pos = 640,105
 counter.offset = 0,30
 counter.font = 2,0, 0
 counter.scale = 2, 2
-counter.palfx.mul = 256, 0, 0
+counter.palfx.mul = 256, 256, 256
 ; Ticks for each count
 framespercount = 60
 
 counter1.scale = 2, 2
 counter1.offset = 0, 30
 counter1.font = 2, 0, 0
-counter1.palfx.mul = 256, 128, 128
-counter1.palfx.sinmul = 0, 128, 128, 20
+counter1.palfx.mul = 256, 256, 256
+counter1.palfx.sinmul = 0, 0, 0, 0
 counter1.layerno = 0
 
 counter10.font = 2, 0, 0
 counter10.offset = 0, 0
 counter10.scale = 1, 1
-counter10.palfx.mul = 256, 128, 128
-counter10.palfx.sinmul = 0, 128, 128, 20
+counter10.palfx.mul = 256, 256, 256
+counter10.palfx.sinmul = 0, 0, 0, 0
 counter10.layerno = 0
 
 counter11.offset = 0, 0
