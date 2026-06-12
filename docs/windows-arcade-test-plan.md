@@ -254,6 +254,46 @@ Player 2:
 | Bottom middle attack | `I` |
 | Bottom right attack | `K` |
 
+## Cabinet OEM Addendum Notes (Dream Arcades)
+
+From the OEM "Custom Game Install Addendum" (Serial ID 8616, 2026-06-10):
+
+- The cabinet boots a nightly Ikemen-GO build via a `shell:startup` shortcut,
+  plus a desktop shortcut. Install path on the cabinet:
+  `C:\Users\Dream Arcades\Desktop\Ikeman_GO-dev-windows`.
+- The config **in use** on the cabinet is
+  `...\Ikeman_GO-dev-windows\save\config.ini`. A reference copy (not in use)
+  sits at `Desktop\config.ini` with the OEM's `[Video]`, `[Keys_P1]`, and
+  `[Keys_P2]` edits.
+- Deployment is a drag-and-drop replacement of the install folder, so **our
+  `save\config.ini` becomes the live config**. Our `[Keys_P1]`/`[Keys_P2]`
+  already match the DreamHID outputs, so only `[Video]` differs: the OEM ran
+  1080p fullscreen, ours renders 720p in exclusive fullscreen (the display
+  upscales). The OEM tested our 720p build without issues.
+- The OEM cabinet's utility-button cluster is physically mirrored versus the
+  handoff image (their 4 buttons sit on the right, not the left). The key
+  codes emitted are unchanged, so no config change is needed.
+- The lighted **Red Exit button sends `Esc` and is the intended exit to the
+  Windows desktop** — `EscOpensMenu = 0` means Esc never opens a pause menu;
+  it exits the game, which is the cabinet design, not a bug.
+- The DreamHID has a board-level shift layer (a second key code per control).
+  Those secondary keys (`3 4 7 8`, `J L O .`, `T U`, `M Y H`, `[ ] \`) are all
+  unbound and trigger no engine hotkey, so they are inert if emitted.
+- Engine hotkey audit for the panel's extraneous keys, with
+  `AllowDebugKeys = 0` and `AllowDebugMode = 0`:
+  - `Enter` (P1 blue): unbound; raw Enter is only read in text-input screens
+    that are unreachable in the locked Play-only flow.
+  - `Tab` (P2 green) and `P` (P2 yellow): referenced nowhere in the config,
+    scripts, or screenpack — inert.
+  - All debug hotkeys are either Ctrl-modified (no Ctrl key exists on the
+    panel) or debug-gated, including the plain-`Space` life-refill hotkey,
+    which matters because `Space` is P1's bottom-right attack.
+- **Keyboard-drawer caveat:** the `PAUSE` (pause), `SCROLLLOCK` (frame step),
+  `F9` (load state), and `F10` (save state) hotkeys are *not* gated by
+  `AllowDebugKeys` and remain active in the production config. None exist on
+  the control panel, but the cabinet keyboard drawer can trigger them — keep
+  the drawer closed during normal operation.
+
 ## Notepad Input Test
 
 Before launching the game, open Notepad and press every physical control.
@@ -398,5 +438,7 @@ Send back:
   not required by the current game flow.
 - The repo includes macOS runtime files, but Windows must use
   `Ikemen_GO.exe` from the official Windows ZIP.
+- `Esc` exits the game by design — it is wired to the cabinet's lighted Red
+  Exit button (see the OEM addendum notes above).
 - The base KFM assets are licensed CC BY-NC, so keep `LICENSES.txt` with the
   package.
