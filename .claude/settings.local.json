@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(cd \"/Users/nwanich/Projects/Mortal Combat\" && echo \"=== recent images in repo ===\" && find . -name \"*.png\" -newermt \"2026-06-10 13:00\" -not -path \"./.venv/*\" 2>/dev/null | head; echo \"=== ~/Downloads & ~/Desktop \\(fight*\\) ===\" && ls -t ~/Downloads/*ight*.png ~/Downloads/*.png ~/Desktop/*.png 2>/dev/null | head -10)",
-      "Read(//Users/nwanich/Downloads/**)"
-    ]
-  }
-}
