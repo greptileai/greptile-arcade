@@ -24,3 +24,6 @@ greptile-game-images/_frames/
 
 # Verification screenshots
 .verify-shots/
+
+# Local Claude Code config
+.claude/

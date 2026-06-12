@@ -681,7 +681,7 @@ def validate_victory_screen(system_def=SYSTEM_DEF):
     spr = parse_num_pair(victory.get("p1.spr", "-1,0"), int)
     required = {
         "enabled": "1",
-        "p1.anim": "-1",
+        "p1.anim": "9400",
         "p1.num": "1",
         "p1.layerno": "2",
         "p1.applypal": "0",
@@ -1069,6 +1069,84 @@ def build_vs_screen(dst=KOMODO_VS_SFF):
     print(f"[vs] {display_path(dst)}: packed {len(sprites)} VS screen sprites")
 
 
+FIGHT_TEXT_PNG = "fight-text.png"
+
+
+def fight_text_sprites(filename=FIGHT_TEXT_PNG):
+    """Slice one FIGHT image into the 4 corner-assembling quadrants used by the
+    round-start "FIGHT" callout (anims 520-523).
+
+    The resting pieces are groups 510,0-3 and the fly-in copies are 511,0-3
+    (identical pixels). Each quadrant's axis is the shared center point so all
+    four reassemble seamlessly when drawn at fight.offset. Quadrant->number
+    mapping matches the fly-in directions: 0=top-left, 1=top-right,
+    2=bottom-left, 3=bottom-right.
+    """
+    path = ART / "ui/hud" / filename
+    if not path.exists():
+        return []
+    img = Image.open(path).convert("RGBA")
+    w, h = img.size
+    cx, cy = w // 2, h // 2
+    quads = [
+        (0, (0, 0, cx, cy), (cx, cy)),   # top-left
+        (1, (cx, 0, w, cy), (0, cy)),    # top-right
+        (2, (0, cy, cx, h), (cx, 0)),    # bottom-left
+        (3, (cx, cy, w, h), (0, 0)),     # bottom-right
+    ]
+    sprites = []
+    for number, box, (ax, ay) in quads:
+        tile = img.crop(box)
+        sprites.append(image_sprite(510, number, tile, ax, ay))  # resting
+        sprites.append(image_sprite(511, number, tile, ax, ay))  # fly-in
+    return sprites
+
+
+KO_TEXT_PNG = "ko.png"
+# fight.def [Round] draws the KO halves at these fixed bg offsets; we center the
+# reassembled image on screen-x KO_CENTER_X.
+KO_LEFT_OFFSET_X = 430
+KO_RIGHT_OFFSET_X = 830
+KO_CENTER_X = 640
+
+
+def ko_text_sprites(filename=KO_TEXT_PNG):
+    """Slice one K.O. image into the left/right halves used by the round-end KO
+    callout (anims 530/531).
+
+    The callout layers two sprite groups: 520 (solid letters) and 522 (the
+    additive glow flash, drawn scaled 1.25). Each is split at center into ,0
+    (left, shown at bg offset 430) and ,1 (right, shown at 830). The axes are
+    chosen so the two halves reassemble into the original image centered on
+    screen at KO_CENTER_X, so no fight.def/animation changes are needed.
+    """
+    path = ART / "ui/hud" / filename
+    if not path.exists():
+        return []
+    img = Image.open(path).convert("RGBA")
+    w, h = img.size
+    cx = w // 2
+    ay = h // 2
+    left = img.crop((0, 0, cx, h))
+    right = img.crop((cx, 0, w, h))
+    # left half: screen-left edge = KO_CENTER_X - w/2, drawn at KO_LEFT_OFFSET_X
+    left_ax = KO_LEFT_OFFSET_X - KO_CENTER_X + cx
+    # right half: screen-left edge = KO_CENTER_X, drawn at KO_RIGHT_OFFSET_X
+    right_ax = KO_RIGHT_OFFSET_X - KO_CENTER_X
+    sprites = []
+    for group in (520, 522):  # solid letters + additive glow share the art
+        sprites.append(image_sprite(group, 0, left, left_ax, ay))
+        sprites.append(image_sprite(group, 1, right, right_ax, ay))
+    # Group 521 is the original black drop shadow (anims 532/533). The custom
+    # art carries its own shadow, so blank 521 with transparent tiles to drop
+    # the stale shadow behind the new letters.
+    blank_left = Image.new("RGBA", left.size, (0, 0, 0, 0))
+    blank_right = Image.new("RGBA", right.size, (0, 0, 0, 0))
+    sprites.append(image_sprite(521, 0, blank_left, left_ax, ay))
+    sprites.append(image_sprite(521, 1, blank_right, right_ax, ay))
+    return sprites
+
+
 def build_hud(dst=FIGHT_SFF):
     """Pack custom fight HUD art into fight.sff."""
     sprites, palettes = read_sff_v2(dst)
@@ -1082,12 +1160,27 @@ def build_hud(dst=FIGHT_SFF):
         (13, 3, "health-fill-flash.png", (435, 24), 435, 0),
         (530, 1, "result-lizard-wins.png", (707, 102), 353, 51),
         (530, 2, "result-bug-wins.png", (646, 102), 323, 51),
+        (40, 0, "powerbar-empty.png", (206, 18), 206, 0),
+        (41, 0, "powerbar-frame.png", (210, 22), 210, 0),
+        (43, 0, "powerbar-fill.png", (202, 14), 202, 0),
     ]
     for group, number, filename, size, ax, ay in replacements:
         img = load_hud_png(filename, size)
         replace_sprite(sprites, image_sprite(group, number, img, ax, ay))
+    fight_text = fight_text_sprites()
+    for sprite in fight_text:
+        replace_sprite(sprites, sprite)
+    ko_text = ko_text_sprites()
+    for sprite in ko_text:
+        replace_sprite(sprites, sprite)
     write_sff_v2(dst, sprites, palettes)
-    print(f"[hud] {display_path(dst)}: packed {len(replacements)} HUD sprites")
+    extras = []
+    if fight_text:
+        extras.append(f"FIGHT text ({len(fight_text)} tiles)")
+    if ko_text:
+        extras.append(f"KO text ({len(ko_text)} tiles)")
+    note = (" + " + " + ".join(extras)) if extras else ""
+    print(f"[hud] {display_path(dst)}: packed {len(replacements)} HUD sprites{note}")
 
 
 def build_winner_screen(dst=KOMODO_WINNER_SFF):
@@ -1184,10 +1277,19 @@ def build_character(variant=DEFAULT_VARIANT, dst=None):
     )
 
 
-def build_stage(scale=1.2):
-    """Build the Greptile city stage SFF from Screen.png."""
+def build_stage(source="Screen-2x.jpg", overfill=1.2):
+    """Build the Greptile city stage SFF from the city background image.
+
+    Ensures the result overfills the 1920x1080 stage space by at least
+    `overfill` (min width 2304) so camera panning never exposes black edges and
+    the .def positioning stays valid. A source already larger than the overfill
+    minimum (e.g. a 2x 2560x1440 image) is kept at full resolution; only smaller
+    sources are upscaled.
+    """
     dst = ROOT / "extracted/stages/greptile_city.sff"
-    img = Image.open(ART / "Screen.png").convert("RGBA")
+    img = Image.open(ART / source).convert("RGBA")
+    min_w = round(1920 * overfill)
+    scale = max(1.0, min_w / img.width)
     if scale != 1:
         img = img.resize((round(img.width * scale), round(img.height * scale)), Image.NEAREST)
     buf = io.BytesIO()
