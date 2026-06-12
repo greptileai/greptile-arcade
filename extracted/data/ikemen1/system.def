@@ -304,6 +304,7 @@ spriteno = 1000,1
 layerno = 1
 start = -310,45
 scale = .75,.75
+sin.y = 5, 90, 0
 mask = 1
 
 [TitleBG Dino]
