@@ -1998,7 +1998,7 @@ overlay.alpha = 0,256
 ;Winner pose. Sprite 9000,3 is packed into each mascot SFF.
 ;Victory portraits are auto-scaled from char localcoord 320x240 to motif
 ;localcoord 1280x720, so 0.25 cancels that 4x multiplier.
-p1.anim = -1
+p1.anim = 9400
 p1.offset = 20, 228
 p1.spr = 9000,3
 p1.layerno = 2
@@ -2058,6 +2058,7 @@ type = normal
 spriteno = 1200,2
 layerno = 1
 start = -382,196
+sin.y = 5, 90, 0
 mask = 1
 
 [VictoryBG Restart Button]

@@ -681,7 +681,7 @@ def validate_victory_screen(system_def=SYSTEM_DEF):
     spr = parse_num_pair(victory.get("p1.spr", "-1,0"), int)
     required = {
         "enabled": "1",
-        "p1.anim": "-1",
+        "p1.anim": "9400",
         "p1.num": "1",
         "p1.layerno": "2",
         "p1.applypal": "0",
